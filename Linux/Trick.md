@@ -130,7 +130,7 @@ Index Page shows that the website is under construction. There's an input for em
 ![[../attachments/Pasted image 20241126002007.png]]
 
 
-![[trick_1.png]]
+![test](../attachments/trick_1.png|trick_1.png)
 
 Let's run `gobuster` to find if there is any sub pages.
 
@@ -196,12 +196,12 @@ The name of the software running is `Payroll Management System`
 ### SQL Injection
 Let's try a simple SQL Injection on Login Input. I'll feed a default SQLi input `admin' OR 1=1-- -` on username, and put whatever string on password.
 
-![[trick_3.png]]
+![[../attachments/trick_3.png|trick_3.png]]
 
 After trying the standard basic SQL injections, we find that using `admin' or 1=1 --`  as the username and anything as the password works!
 
-![[trick_4.png]]
-![[trick_5.png]]
+![[../attachments/trick_4.png|trick_4.png]]
+![[../attachments/trick_5.png|trick_5.png]]
 
 "Users" tab on the admin panel provides a function to edit user's properties including password.
 
