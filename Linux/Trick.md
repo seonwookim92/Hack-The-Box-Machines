@@ -1,3 +1,6 @@
+![Trick](https://labs.hackthebox.com/storage/avatars/ca56ef43d636aff7da48a8b484756cfe.png)
+
+
 - Machine : https://app.hackthebox.com/machines/Trick
 - Reference : https://youtu.be/H9FcE_FMZio?si=7dOih6GEVsMYjLO3
 - Solved : 2024.11.25. (Mon) (Takes 1day)
