@@ -127,7 +127,7 @@ trick.htb.              604800  IN      SOA     trick.htb. root.trick.htb. 5 604
 ### http(80)
 Index Page shows that the website is under construction. There's an input for email, but it's not working. Its source code contains has some codes regarding bootstrap only.
 
-![[attachments/Pasted image 20241126001838.png]]
+![[../attachments/Pasted image 20241126002007.png]]
 
 
 ![[trick_1.png]]
