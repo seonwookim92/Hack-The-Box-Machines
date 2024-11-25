@@ -127,6 +127,9 @@ trick.htb.              604800  IN      SOA     trick.htb. root.trick.htb. 5 604
 ### http(80)
 Index Page shows that the website is under construction. There's an input for email, but it's not working. Its source code contains has some codes regarding bootstrap only.
 
+![[attachments/Pasted image 20241126001838.png]]
+
+
 ![[trick_1.png]]
 
 Let's run `gobuster` to find if there is any sub pages.
@@ -162,7 +165,7 @@ Finished
 Only generic pages (such as `/assets`, `css`, `/js`) are found.
 Let's try to visit another domain : `preprod-payroll.trick.htb`.
 
-![[trick_2.png]]
+![trick_2](obsidian://open?vault=Hack-The-Box-Machines&file=attachments%2Ftrick_2.png)
 
 Also, let's run `gobuster` again to find sub pages.
 
