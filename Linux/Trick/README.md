@@ -758,7 +758,6 @@ Now I have the `michael`'s shell!
 ## Enumeration
 ### Manual Enumeration
 ---
-
 First let's start with `SUID` permission.
 
 ```bash
@@ -798,6 +797,8 @@ User michael may run the following commands on trick:
     (root) NOPASSWD: /etc/init.d/fail2ban restart
 ```
 
+### Privesc exploiting fail2ban
+---
 `fail2ban` is sudoable. Let's google if there's any useful information.
 
 <https://youssef-ichioui.medium.com/abusing-fail2ban-misconfiguration-to-escalate-privileges-on-linux-826ad0cdafb7>
