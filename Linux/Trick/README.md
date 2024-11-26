@@ -1,12 +1,39 @@
+---
+tags:
+  - sqli
+  - lfi
+  - fail2ban
+---
+
 ![Trick](https://labs.hackthebox.com/storage/avatars/ca56ef43d636aff7da48a8b484756cfe.png)
 
 
 - Machine : https://app.hackthebox.com/machines/Trick
 - Reference : https://youtu.be/H9FcE_FMZio?si=7dOih6GEVsMYjLO3
-- Solved : 2024.11.25. (Mon) (Takes 1day)
+- Solved : 2024.11.26. (Tue) (Takes 2days)
  
 ### Summary
 ---
+- **Initial Enumeration**
+    
+    - Open ports: `22 (SSH)`, `25 (SMTP)`, `53 (DNS)`, `80 (HTTP)`.
+    - Reverse DNS lookup revealed domain `trick.htb`.
+    - Zone transfer revealed additional subdomains: `preprod-payroll.trick.htb` and `preprod-marketing.trick.htb`.
+- **Web Exploitation**
+    
+    - **SQL Injection**: Found admin credentials through SQLi on `preprod-payroll.trick.htb`.
+    - **Local File Inclusion (LFI)**: Extracted sensitive files, including `db_connect.php`, which revealed database credentials.
+- **SSH Access**
+    
+    - Discovered and extracted `id_rsa` private key for user `michael` via LFI.
+    - Gained SSH access as `michael`.
+- **Privilege Escalation**
+    
+    - Found `sudo` permissions to restart the `fail2ban` service.
+    - Exploited `fail2ban` by injecting a malicious action configuration (`iptables-multiport.conf`) to set SUID on `/bin/bash`.
+    - Triggered the fail2ban action via brute-forcing SSH using `hydra`.
+    - Gained a root shell by executing `bash -p`.
+
 
 
 # External Penetration Testing
@@ -134,8 +161,7 @@ trick.htb.              604800  IN      SOA     trick.htb. root.trick.htb. 5 604
 ---
 Index Page shows that the website is under construction. There's an input for email, but it's not working. Its source code contains has some codes regarding bootstrap only.
 
-![trick_1](.
-/attachments/trick_1.png)
+![trick_1](./attachments/trick_1.png)
 
 Let's run `gobuster` to find if there is any sub pages.
 
