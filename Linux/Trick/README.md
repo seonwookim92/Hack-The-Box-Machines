@@ -34,13 +34,16 @@ tags:
     - Triggered the fail2ban action via brute-forcing SSH using `hydra`.
     - Gained a root shell by executing `bash -p`.
 
+### Key Techniques:
 
+- Emphasized DNS misconfigurations and subdomain enumeration.
+- Combined LFI and SQLi to access sensitive files and escalate privileges.
+- Demonstrated how misconfigured `fail2ban` can be weaponized for privilege escalation.
 
-# External Penetration Testing
----
-## External Information Gathering
+# Reconnaissance
+
 ### Port Scanning
----
+
 ```bash
 ┌──(kali㉿kali)-[~/htb]
 └─$ ./port-scan.sh 10.10.11.166
@@ -76,8 +79,6 @@ The port scanning found 4 open ports : 22,25,53,80.
 While it contains DNS(53) port, but it doesn't reveal domain name.
 Maybe reverse DNS lookup might be helpful to find domain name.
 Also, http(80) is supposed to be visited ahead of other services.
-
-
 
 ### dns(53)
 ---
@@ -155,8 +156,6 @@ trick.htb.              604800  IN      SOA     trick.htb. root.trick.htb. 5 604
 
 `preprod-payroll.trick.htb` and `root.trick.htb` are additionally found.
 
-
-
 ### http(80)
 ---
 Index Page shows that the website is under construction. There's an input for email, but it's not working. Its source code contains has some codes regarding bootstrap only.
@@ -224,8 +223,7 @@ Starting gobuster in directory enumeration mode
 The name of the software running is `Payroll Management System`
 
 
-
-## Exploitation
+# Shell as `michael`
 ### SQL Injection
 ---
 Let's try a simple SQL Injection on Login Input. I'll feed a default SQLi input `admin' OR 1=1-- -` on username, and put whatever string on password.
@@ -427,8 +425,6 @@ server {
 ```
 
 The extracted `nginx.conf` is somewhat trimmed, not showing the whole content..
-
-
 
 ### Local File Inclusion
 ---
@@ -760,7 +756,7 @@ Let's save this private key and try to login as `michael` through `ssh`.
 ```bash
 ┌──(kali㉿kali)-[~/htb]
 └─$ chmod 600 michael_id_rsa.priv 
-                                                              
+ 
 ┌──(kali㉿kali)-[~/htb]
 └─$ ssh -i michael_id_rsa.priv michael@10.10.11.166
 Linux trick 4.19.0-20-amd64 #1 SMP Debian 4.19.235-1 (2022-03-17) x86_64
@@ -778,11 +774,8 @@ uid=1001(michael) gid=1001(michael) groups=1001(michael),1002(security)
 Now I have the `michael`'s shell!
 
 
-
----
-# Internal Penetration Testing
-## Enumeration
-### Manual Enumeration
+# Shell as `root`
+### Enumeration
 ---
 First let's start with `SUID` permission.
 
