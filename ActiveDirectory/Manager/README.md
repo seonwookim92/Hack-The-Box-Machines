@@ -1,5 +1,7 @@
 ---
 tags:
+  - mssql
+  - adcs
 ---
 ![manager](https://labs.hackthebox.com/storage/avatars/5ca8f0c721a9eca6f1aeb9ff4b4bac60.png)
 
@@ -13,8 +15,8 @@ tags:
 	- **Open Ports**: Identified critical services such as DNS, HTTP, Kerberos, LDAP, SMB, MSSQL, and WinRM.
 	- **DNS Enumeration**:
 	    - Discovered the domain `manager.htb` and hostname `dc01.manager.htb`.
-	- **SMB**:
-	    - Found readable shares, including `SYSVOL`, which provided domain-related files.
+	- **Discover AD users**:
+	    - Using `impacket-lookupsid`, I could find AD users. Can do the same with `kerbrute`.
     
 2. **Web Exploitation**
 
@@ -25,7 +27,7 @@ tags:
 	
 	- **WinRM**:
 	    - Used extracted credentials to gain access to the system through WinRM.
-	    - 
+	    
 4. **Privilege Escalation**
 
 	- **MSSQL Exploitation**:
