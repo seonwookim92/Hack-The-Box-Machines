@@ -16,21 +16,26 @@ tags:
     
     - Scanned target for open ports and discovered services including HTTP and a possible subdomain.
     - Found a web application and potential backend service (Mattermost).
+    
 2. **Enumeration**:
     
     - Performed directory and subdomain brute-forcing to identify login pages and subdomains.
     - Exploited NoSQL injection to bypass authentication on Mattermost and extract user information.
+    
 3. **Privilege Escalation to `jaeger`**:
     
     - Used extracted credentials to gain SSH access as a standard user.
+    
 4. **Binary Analysis**:
     
     - Found a binary executable with `sudo` permissions.
     - Decompiled the binary to identify a hardcoded master password and used it to retrieve further credentials.
+    
 5. **Privilege Escalation to `deploy`**:
     
     - Used the credentials obtained from the binary to switch to the `deploy` user.
     - Discovered that `deploy` belonged to the `docker` group.
+    
 6. **Root Privilege Escalation**:
     
     - Exploited Docker group membership to escape the container and gain root access.
