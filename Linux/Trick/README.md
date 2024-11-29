@@ -44,6 +44,7 @@ tags:
 - Demonstrated how misconfigured `fail2ban` can be weaponized for privilege escalation.
 
 ---
+
 # Reconnaissance
 
 ### Port Scanning

@@ -47,6 +47,7 @@ tags:
 - **AD CS Exploitation**: Identified and abused certificate authority misconfigurations for privilege escalation.
 - **Credential Abuse**: Leveraged valid credentials and NTLM hash to gain higher privileges.
 
+---
 
 # Reconnaissance
 
