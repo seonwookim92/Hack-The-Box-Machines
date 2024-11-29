@@ -8,7 +8,7 @@ tags:
 
 - Machine : https://app.hackthebox.com/machines/Shoppy
 - Reference : https://youtu.be/AJc53DUdt1M?si=cFusvG-9zN17S-Xs
-- Solved : 2024.11.27. (Wed) (Takes 2day)
+- Solved : 2024.11.27. (Wed) (Takes 2days)
 ---
 ## Summary
 
