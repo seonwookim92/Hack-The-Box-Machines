@@ -6,9 +6,9 @@ tags:
 ---
 ![](https://labs.hackthebox.com/storage/avatars/8fa064016362fbfce91b5de54b7e7f7e.png)
 
-- Machine : 
-- Reference : 
-- Solved : 2024.00.00. (Thu) (Takes 0days)
+- Machine : https://app.hackthebox.com/machines/Agile
+- Reference : https://0xdf.gitlab.io/2023/08/05/htb-agile.html
+- Solved : 2024.11.30. (Sat) (Takes 2days)
 
 ### Summary
 ---
