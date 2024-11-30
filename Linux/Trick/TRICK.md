@@ -165,7 +165,7 @@ trick.htb.              604800  IN      SOA     trick.htb. root.trick.htb. 5 604
 ---
 Index Page shows that the website is under construction. There's an input for email, but it's not working. Its source code contains has some codes regarding bootstrap only.
 
-![trick_1](./attachments/trick_1.png)
+![trick\_1](./attachments/trick_1.png)
 
 Let's run `gobuster` to find if there is any sub pages.
 
@@ -200,7 +200,7 @@ Finished
 Only generic pages (such as `/assets`, `css`, `/js`) are found.
 Let's try to visit another domain : `preprod-payroll.trick.htb`.
 
-![trick_2](./attachments/trick_2.png)
+![trick\_2](./attachments/trick_2.png)
 
 Also, let's run `gobuster` again to find sub pages.
 
@@ -233,12 +233,12 @@ The name of the software running is `Payroll Management System`
 ---
 Let's try a simple SQL Injection on Login Input. I'll feed a default SQLi input `admin' OR 1=1-- -` on username, and put whatever string on password.
 
-![trick_3](./attachments/trick_3.png)
+![trick\_3](./attachments/trick_3.png)
 
 After trying the standard basic SQL injections, we find that using `admin' or 1=1 --`  as the username and anything as the password works!
 
-![trick_4](./attachments/trick_4.png)
-![trick_5](./attachments/trick_5.png)
+![trick\_4](./attachments/trick_4.png)
+![trick\_5](./attachments/trick_5.png)
 
 "Users" tab on the admin panel provides a function to edit user's properties including password.
 
@@ -525,7 +525,7 @@ payroll
 `preprod-marketing.trick.htb` is additionally found. Let's add this to `/etc/hosts`.
 Then, let's visit the vHost.
 
-![trick_7](attachments/trick_7.png)
+![trick\_7](attachments/trick_7.png)
 
 While enumerating through the website, I can find that the URL contains `page=` parameter with included file name, like;
 
