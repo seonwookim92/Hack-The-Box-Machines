@@ -4,7 +4,7 @@ tags:
   - chrome
   - sudoedit
 ---
-![](https://labs.hackthebox.com/storage/avatars/5ca8f0c721a9eca6f1aeb9ff4b4bac60.png)
+![](https://labs.hackthebox.com/storage/avatars/8fa064016362fbfce91b5de54b7e7f7e.png)
 
 - Machine : 
 - Reference : 
