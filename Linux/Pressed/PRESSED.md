@@ -1246,7 +1246,6 @@ Then, let's check upload directory to find if the file is successfully uploaded.
 ![](attachments/pressed_12.png)
 
 It is! Now we can use this file!
-Let's change the file extension to `c` file through previously uploaded webshell.
 
 ```bash
 ┌──(kali㉿kali)-[~/htb/wordpress-xmlrpc]
@@ -1269,3 +1268,4 @@ d9c8a6af901fd6a5e118ad410757b84e
 hello[+] Nice Job
 ```
 
+Now I can run commands as `root`!
