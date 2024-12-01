@@ -19,20 +19,20 @@ tags:
     - **Port Scanning**: Identified key open ports, including DNS (53), Kerberos (88), LDAP (389/636), SMB (445), HTTP (8530), and WinRM (5985).
     - **DNS Enumeration**: Discovered domain `outdated.htb` and hostname `dc.outdated.htb` via zone transfer and query (`dig`).
     - **SMB Enumeration**: Found accessible shares and downloaded a document (`NOC_Reminder.pdf`) containing useful information such as vulnerabilities and an email (`itsupport@outdated.htb`).
-2. **Web Exploitation**
     
+2. **Web Exploitation**
     - **Follina Exploit (CVE-2022-30190)**:
         - Used a public exploit to craft an RTF payload and sent it via SMTP to the discovered email address.
         - Triggered the payload to execute a reverse shell as user `btables`.
-3. **Active Directory Exploitation**
     
+3. **Active Directory Exploitation**
     - **BloodHound Analysis**:
         - Identified `AddKeyCredentialLink` privilege for `btables`.
     - **KeyCredential Abuse**:
         - Used `Whisker` to abuse the `AddKeyCredentialLink` privilege and added a certificate to the `sflowers` user account.
         - Retrieved the NTLM hash for `sflowers` using `Rubeus`.
+	
 4. **Privilege Escalation**
-    
     - **WSUS Exploitation**:
         - Leveraged the `WSUS Administrators` group membership of `sflowers` to exploit a non-HTTPS WSUS server (`http://wsus.outdated.htb:8530`).
         - Used `SharpWSUS` to create and approve a malicious WSUS update containing a reverse shell payload.
