@@ -12,7 +12,7 @@ tags:
 - Reference : https://youtu.be/H9FcE_FMZio?si=7dOih6GEVsMYjLO3
 - Solved : 2024.11.26. (Tue) (Takes 2days)
  
-### Summary
+## Summary
 ---
 1. **Initial Enumeration**
     

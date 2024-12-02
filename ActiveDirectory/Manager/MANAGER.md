@@ -8,7 +8,7 @@ tags:
 - Machine : https://app.hackthebox.com/machines/Manager
 - Reference : https://0xdf.gitlab.io/2024/03/16/htb-manager.html
 - Solved : 2024.11.28. (Thu) (Takes 2days)
-### Summary
+## Summary
 ---
 1. **Initial Enumeration**
 
