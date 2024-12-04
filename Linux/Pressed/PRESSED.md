@@ -4,6 +4,7 @@ tags:
   - xmlrpc
   - pkexec
   - CVE-2021-4034
+group: Linux
 ---
 ![](https://labs.hackthebox.com/storage/avatars/933a05448c07bbdc08c3dcc1fe75aea6.png)
 

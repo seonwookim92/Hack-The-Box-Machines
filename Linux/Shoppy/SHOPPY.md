@@ -3,6 +3,7 @@ tags:
   - nosql
   - mattermost
   - docker
+group: Linux
 ---
 ![Shoppy](https://labs.hackthebox.com/storage/avatars/a30c60e20eb764fd28e72c60be5fa693.png)
 

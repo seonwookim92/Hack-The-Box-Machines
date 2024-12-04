@@ -4,6 +4,7 @@ tags:
   - follina
   - AddKeyCredentialLink
   - WSUS
+group: ActiveDirectory
 ---
 
 ![](https://labs.hackthebox.com/storage/avatars/3494a3a243d6f971c5122ad81cb2254e.png)

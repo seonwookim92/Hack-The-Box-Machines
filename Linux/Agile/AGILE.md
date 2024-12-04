@@ -3,6 +3,7 @@ tags:
   - flask
   - chrome
   - sudoedit
+group: Linux
 ---
 ![](https://labs.hackthebox.com/storage/avatars/8fa064016362fbfce91b5de54b7e7f7e.png)
 

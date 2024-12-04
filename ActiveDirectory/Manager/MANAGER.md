@@ -2,6 +2,7 @@
 tags:
   - mssql
   - ad_cs
+group: ActiveDirectory
 ---
 ![manager](https://labs.hackthebox.com/storage/avatars/5ca8f0c721a9eca6f1aeb9ff4b4bac60.png)
 

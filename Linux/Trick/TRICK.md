@@ -3,6 +3,7 @@ tags:
   - sqli
   - lfi
   - fail2ban
+group: Linux
 ---
 
 ![Trick](https://labs.hackthebox.com/storage/avatars/ca56ef43d636aff7da48a8b484756cfe.png)

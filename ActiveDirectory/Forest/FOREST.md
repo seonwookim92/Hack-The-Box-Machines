@@ -3,6 +3,7 @@ tags:
   - asreproasting
   - ad_genericall
   - ad_writedacl
+group: ActiveDirectory
 ---
 ![](https://labs.hackthebox.com/storage/avatars/7dedecb452597150647e73c2dd6c24c7.png)
 

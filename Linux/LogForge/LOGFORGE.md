@@ -1,5 +1,6 @@
 ---
-tags:
+tags: 
+group: Linux
 ---
 ![](https://labs.hackthebox.com/storage/avatars/9b50e63692fc35f864c8df9c19ef0e2f.png)
 
