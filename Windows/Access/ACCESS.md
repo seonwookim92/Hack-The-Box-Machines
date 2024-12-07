@@ -1,5 +1,8 @@
 ---
-tags: 
+tags:
+  - ms_access_db
+  - runas
+  - savecred
 group: Windows
 ---
 ![](https://labs.hackthebox.com/storage/avatars/adef7ad3d015a1fbc5235d5a201ca7d1.png)
@@ -11,8 +14,27 @@ group: Windows
 ## Summary
 ---
 
+1. **Initial Enumeration**
+	- Found open ports: FTP (21), Telnet (23), HTTP (80).
+	- Anonymous FTP allowed file downloads, revealing a `.mdb` database and a password-protected `.zip`.
+
+2. **File Analysis**
+	- Extracted credentials from the `.mdb` file using `mdb-tools`.
+	- Unzipped the `.zip` file using a discovered password, revealing a `.pst` file with another set of credentials.
+
+3. **Initial Access**
+	- Used credentials from the `.pst` file to log in via Telnet as a lower-privileged user.
+
+4. **Privilege Escalation**
+	- Found a shortcut (`.lnk`) on the desktop that used `runas.exe` with saved administrator credentials.
+	- Verified the saved credentials with `cmdkey`.
+	- Executed a PowerShell reverse shell as an administrator using `runas /savecred`.
 
 ### Key Techniques:
+
+- **Microsoft Access Database** : Extracted data from `.mdb` and `.pst` files.
+- **Exploiting `runas /savecred`** : Exploited saved credentials using `runas /savecred`.
+- **Privilege Escalation** : Gained administrator access with a reverse shell payload.
 
 
 ---
