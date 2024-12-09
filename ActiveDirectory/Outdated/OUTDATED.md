@@ -11,7 +11,7 @@ group: ActiveDirectory
 
 - Machine : https://app.hackthebox.com/machines/Outdated
 - Reference : https://0xdf.gitlab.io/2022/12/10/htb-outdated.html
-- Solved : 2024.11.29. (Fri) (Takes 2day)
+- Solved : 2024.11.29. (Fri) (Takes 2days)
 ---
 ## Summary
 
