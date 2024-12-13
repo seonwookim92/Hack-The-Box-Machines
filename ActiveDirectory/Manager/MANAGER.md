@@ -12,25 +12,21 @@ group: ActiveDirectory
 ## Summary
 ---
 1. **Initial Enumeration**
-
 	- **Open Ports**: Identified critical services such as DNS, HTTP, Kerberos, LDAP, SMB, MSSQL, and WinRM.
 	- **DNS Enumeration**:
 	    - Discovered the domain `manager.htb` and hostname `dc01.manager.htb`.
 	- **Discover AD users**:
 	    - Using `impacket-lookupsid`, I could find AD users. Can do the same with `kerbrute`.
-    
-2. **Web Exploitation**
 
+2. **Web Exploitation**
 	- Explored the HTTP service and identified a backup file via directory enumeration.
 	- Extracted sensitive information from the backup, including valid user credentials.
 	
 3. **Service Access**
-	
 	- **WinRM**:
 	    - Used extracted credentials to gain access to the system through WinRM.
 	    
 4. **Privilege Escalation**
-
 	- **MSSQL Exploitation**:
 	    - Enumerated directories on the server using MSSQL's `xp_dirtree` feature to find sensitive files.
 	- **AD CS Exploitation**:
