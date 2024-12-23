@@ -50,7 +50,7 @@ group: ActiveDirectory
 
 ### Port Scanning
 
-```yaml
+```bash
 ┌──(kali㉿kali)-[~/htb]
 └─$ ./port-scan.sh 10.10.11.236
 Performing quick port scan on 10.10.11.236...
