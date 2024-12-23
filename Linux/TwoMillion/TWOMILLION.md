@@ -7,7 +7,7 @@ group: Linux
 
 - Machine : https://app.hackthebox.com/machines/TwoMillion
 - Reference : https://0xdf.gitlab.io/2023/06/07/htb-twomillion.html
-- Solved : 2024.12.20. (Thu) (Takes 0days)
+- Solved : 2024.12.23. (Mon) (Takes 2days)
 
 ## Summary
 ---
