@@ -16,7 +16,6 @@ group: ActiveDirectory
 ## Summary
 
 1. **Initial Enumeration**
-    
     - **Port Scanning**: Identified key open ports, including DNS (53), Kerberos (88), LDAP (389/636), SMB (445), HTTP (8530), and WinRM (5985).
     - **DNS Enumeration**: Discovered domain `outdated.htb` and hostname `dc.outdated.htb` via zone transfer and query (`dig`).
     - **SMB Enumeration**: Found accessible shares and downloaded a document (`NOC_Reminder.pdf`) containing useful information such as vulnerabilities and an email (`itsupport@outdated.htb`).
