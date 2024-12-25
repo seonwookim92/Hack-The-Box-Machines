@@ -3,7 +3,7 @@ tags:
   - ms08-067
 group: Windows
 ---
-![](https://labs.hackthebox.com/storage/avatars/5ca8f0c721a9eca6f1aeb9ff4b4bac60.png)
+![](https://labs.hackthebox.com/storage/avatars/60dc190c4c015cfe3a3aef9b5afca254.png)
 
 - Machine : https://app.hackthebox.com/machines/Legacy
 - Reference : https://0xdf.gitlab.io/2019/02/21/htb-legacy.html
