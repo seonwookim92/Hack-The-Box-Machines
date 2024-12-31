@@ -14,17 +14,17 @@ group: EnterpriseNetwork
 
 | Idx | Int/Ext | User          | Password                          | Type  | Where to find | Where to use | Link                                                           |
 | --- | ------- | ------------- | --------------------------------- | ----- | ------------- | ------------ | -------------------------------------------------------------- |
-| 1   | Ext     | ilfreightwp   | password1                         | plain | ir            | ir           | [Link](AEN.md#ir.inlanefreight.local)                          |
-| 2   | Ext     | admin         | 4528342e54d6f8f8cf15bf6e3c31bf1f6 | plain | status        | Unknown      | [Link](AEN.md#status.inlanefreight.local)                      |
-| 3   | Ext     | srvadm        | ILFreightnixadm!                  | plain | DMZ           | DMZ          | [Link](AEN.md#Privilege%20Escalation%20to%20`srvadm`)          |
-| 4   | Ext     | root          | RSA                               | RSA   | DMZ           | DMZ          | [Link](AEN.md#Privilege%20Escalation%20to%20`root`)            |
-| 5   | Int     | Administrator | D0tn31Nuk3R0ck$$@123              | plain | DNN           | DNN          | [Link](AEN.md#172.16.8.20)                                     |
-| 6   | Int     | hporter       | Gr8hambino!                       | plain | DEV01         | AD           | [Link](AEN.md#Credential%20dump)                               |
-| 7   | Int     | backupadm     | !qazXSW@                          | plain | DC01          | SQL          | [Link](AEN.md#SMB%20share%20`Department%20Shares`%20on%20DC01) |
-| 8   | Int     | account       | L337^p@$$w0rD                     | plain | DC01          | Email        | [Link](AEN.md#SMB%20Share%20`SYSVOL`%20on%20DC01)              |
-| 9   | Int     | backupjob     | lucky7                            | plain | DC01          | SPN          | [Link](AEN.md#Kerberoasting)                                   |
+| 1   | Ext     | ilfreightwp   | password1                         | plain | ir            | ir           | [Link](#ir.inlanefreight.local)                          |
+| 2   | Ext     | admin         | 4528342e54d6f8f8cf15bf6e3c31bf1f6 | plain | status        | Unknown      | [Link](#status.inlanefreight.local)                      |
+| 3   | Ext     | srvadm        | ILFreightnixadm!                  | plain | DMZ           | DMZ          | [Link](#Privilege%20Escalation%20to%20`srvadm`)          |
+| 4   | Ext     | root          | RSA                               | RSA   | DMZ           | DMZ          | [Link](#Privilege%20Escalation%20to%20`root`)            |
+| 5   | Int     | Administrator | D0tn31Nuk3R0ck$$@123              | plain | DNN           | DNN          | [Link](#172.16.8.20)                                     |
+| 6   | Int     | hporter       | Gr8hambino!                       | plain | DEV01         | AD           | [Link](#Credential%20dump)                               |
+| 7   | Int     | backupadm     | !qazXSW@                          | plain | DC01          | SQL          | [Link](#SMB%20share%20`Department%20Shares`%20on%20DC01) |
+| 8   | Int     | account       | L337^p@$$w0rD                     | plain | DC01          | Email        | [Link](#SMB%20Share%20`SYSVOL`%20on%20DC01)              |
+| 9   | Int     | backupjob     | lucky7                            | plain | DC01          | SPN          | [Link](#Kerberoasting)                                   |
 | 10  | Int     | ilfserveradm  | Sys26Admin                        | plain | MS01          | MS01         |                                                                |
-| 11  | Int     | mssqladm      | DBAilfreight1!                    | plain | MS01          | AD           | [Link](AEN.md#Credential%20dump%20`mssqladm`)                  |
+| 11  | Int     | mssqladm      | DBAilfreight1!                    | plain | MS01          | AD           | [Link](#Credential%20dump%20`mssqladm`)                  |
 
 
 
