@@ -4,7 +4,7 @@ tags:
   - drupal
 group: Linux
 ---
-![](https://labs.hackthebox.com/storage/avatars/5ca8f0c721a9eca6f1aeb9ff4b4bac60.png)
+![](https://labs.hackthebox.com/storage/avatars/72d59997b352994c628a2b58b022b1d0.png)
 
 - Machine : https://app.hackthebox.com/machines/Hawk
 - Reference : https://0xdf.gitlab.io/2018/11/30/htb-hawk.html
