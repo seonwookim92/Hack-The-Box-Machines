@@ -297,7 +297,7 @@ result was NT_STATUS_ACCESS_DENIED
 
 ### mssql(1433)
 
-```python
+```bash
 ┌──(kali㉿kali)-[~/htb]
 └─$ sqsh -S 10.10.10.52 -U sa -P ''
 sqsh-2.5.16.1 Copyright (C) 1995-2001 Scott C. Gray
@@ -305,7 +305,6 @@ Portions Copyright (C) 2004-2014 Michael Peppler and Martin Wesdorp
 This is free software with ABSOLUTELY NO WARRANTY
 For more information type '\warranty'
 Login failed for user 'sa'.
-
 ```
 
 Ms SQL doesn't allow login without password. Maybe we have to visit it later.
