@@ -23,7 +23,9 @@ group: EnterpriseNetwork
 | 8   | Int     | admin     | password6543                | plain | NIX03         | Webmin       |                                                       |
 | 9   | Int     | xadmin    | Peacemaker!                 | plain | DC01          | ssh          |                                                       |
 | 10  | Int     | katwamba  | DishonestSupermanDiablo5679 | plain | DC01          | ssh          |                                                       |
-|     |         |           |                             |       |               |              |                                                       |
+| 11  | Int     | dharding  | WestminsterOrange5          | plain | WS02          | ftp          |                                                       |
+| 12  | Int     | dharding  | WestminsterOrange17         | plain | WS02          | smb          |                                                       |
+| 13  | Int     | mrb3n     | Welcome1                    | plain | DC01          |              |                                                       |
 |     |         |           |                             |       |               |              |                                                       |
 |     |         |           |                             |       |               |              |                                                       |
 
@@ -39,9 +41,9 @@ group: EnterpriseNetwork
 | 5   | WS01(13)   | User   | - Obtain credential from `sql` file<br>- Exploit File Upload vulnerability in Sign-up page                                                                                                                      | [Link](DANTE.md#172.16.1.13(WS01))                    |
 | 6   | NIX03(17)  | Owned  | - Webmin 1.900 Package Update exploit                                                                                                                                                                           | [Link](DANTE.md#172.16.1.17(NIX03))                   |
 | 7   | ???(19)    | Pass   | - No valid credential yet...                                                                                                                                                                                    |                                                       |
-|     | DC01(20)   |        |                                                                                                                                                                                                                 |                                                       |
-|     | WS02(101)  | Pass   |                                                                                                                                                                                                                 |                                                       |
-|     | WS03(102)  | Owned  |                                                                                                                                                                                                                 |                                                       |
+|     | DC01(20)   | Owned  | - Exploit MS17-010<br>- Get `employee_backup.xlsx`<br>- Credential dump(`katwamba`, `xadmin`...)                                                                                                                |                                                       |
+|     | WS02(101)  | User   | - ftp brute forcing using `employee_backup.xlsx` list<br>- smb brute forcing for `dharding` using `crackmapexec`<br>- Spawn a shell with `evil-winrm`                                                           |                                                       |
+|     | WS03(102)  | Owned  | - Exploit "Online Marriage Registration System"<br>- Exploit SeImpersonatePrivilege token                                                                                                                       |                                                       |
 |     |            |        |                                                                                                                                                                                                                 |                                                       |
 |     |            |        |                                                                                                                                                                                                                 |                                                       |
 
@@ -56,7 +58,7 @@ group: EnterpriseNetwork
 - [External Penetration Testing](Details/External%20Penetration%20Testing.md)
 - [Shell as www-data on NIX01](Details/Shell%20as%20www-data%20on%20NIX01.md)
 - [172.16.1.100(NIX01)](Details/172.16.1.100(NIX01).md)
-- [Pivotting](Details/Pivotting.md)
+- [Pivoting](Details/Pivoting.md)
 - [Internal Penetration Testing](Details/Internal%20Penetration%20Testing.md)
 - [172.16.1.1(FW)](Details/172.16.1.1(FW).md)
 - [172.16.1.5(SQL01)](Details/172.16.1.5(SQL01).md)
@@ -66,6 +68,6 @@ group: EnterpriseNetwork
 - [172.16.1.17(NIX03)](Details/172.16.1.17(NIX03).md)
 - [172.16.1.19](Details/172.16.1.19.md)
 - [172.16.1.101(WS02)](Details/172.16.1.101(WS02).md)
-- [172.16.1.20(DC01)](Details/172.16.1.20(DC01).md)
-
+- [172.16.1.20(DC01)](172.16.1.20(DC01).md)
+- [172.16.1.101(WS02)](Details/172.16.1.101(WS02).md)
 

@@ -44,8 +44,6 @@ group: Linux
         - Uploaded a reverse shell script using `wget`.
         - Executed the script and gained a root shell.
 
----
-
 ### Key Techniques:
 
 - **SSL Decryption**: Brute-forced an encrypted file to retrieve sensitive information.

