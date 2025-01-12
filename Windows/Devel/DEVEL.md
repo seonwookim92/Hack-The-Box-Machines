@@ -1,19 +1,37 @@
 ---
-tags: 
+tags:
+  - ms13-053
 group: Windows
 ---
 ![](https://labs.hackthebox.com/storage/avatars/0fb6455a29eb4f2682f04a780ce26cb1.png)
 
 - Machine : https://app.hackthebox.com/machines/Devel
 - Reference : https://0xdf.gitlab.io/2019/03/05/htb-devel.html
-- Solved : 2025.1.12. (??) (Takes 0days)
+- Solved : 2025.1.12. (Sun) (Takes 1day)
 
 ## Summary
 ---
 
+1. **Initial Enumeration**
+    - **Open Ports**: FTP (21), HTTP (80).
+    - **FTP**: Anonymous login allowed; directory overlaps with HTTP root.
+    - **HTTP**: Default IIS7 page; confirmed FTP-uploaded files accessible via HTTP.
+    
+2. **Initial Access**
+    - **Approach**: Uploaded a test file via FTP and verified web access.
+    - **Payload**: Used `msfvenom` to generate a reverse shell (`.aspx`) and executed it through HTTP.
+    - **Result**: Obtained shell as `IIS APPPOOL\Web`.
+    
+3. **Privilege Escalation**
+    - **Exploit Used**: `ms13_053_schlamperei`.
+    - **Method**: Leveraged Metasploit to escalate privileges.
+    - **Result**: Gained `NT AUTHORITY\SYSTEM`.
 
 ### Key Techniques:
 
+1. Verified FTP write access and web server integration.
+2. Uploaded and executed a reverse shell via HTTP.
+3. Used Metasploit's local exploit suggester for privilege escalation.
 
 ---
 
