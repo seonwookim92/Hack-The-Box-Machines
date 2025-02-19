@@ -4,7 +4,7 @@ Let's find what hosts are existing in the network.
 
 ```bash
 root@DANTE-WEB-NIX01:/var/www/html# 
-for i in {1..254}; do (ping -c 1 172.16.1.${i} | grep "bytes from" | grep -v "Unreachable" &); done;
+*for i in {1..254}; do (ping -c 1 172.16.1.${i} | grep "bytes from" | grep -v "Unreachable" &); done;*
 
 64 bytes from 172.16.1.5: icmp_seq=1 ttl=128 time=0.997 ms
 64 bytes from 172.16.1.10: icmp_seq=1 ttl=64 time=0.423 ms

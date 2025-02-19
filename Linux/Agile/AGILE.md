@@ -23,7 +23,7 @@ group: Linux
     
     - **LFI Vulnerability**: Exploited `../` path traversal in the file download endpoint to access server-side files (`/etc/passwd`, `/etc/nginx/nginx.conf`).
     - **Debug Mode Exposure**: Identified Flask's debug mode enabled, leaking the application’s file paths and allowing PIN brute-forcing.
-3. **Exploit Flask Debug PIN**
+3. **Exploit *Flask* Debug PIN**
     
     - Used leaked values like the `machine-id`, `MAC address`, and application file paths to calculate the Flask debug PIN using a Python script.
     - Gained Python shell access and executed a reverse shell payload to obtain a `www-data` shell.
@@ -338,7 +338,7 @@ When I click the code, it shows a prompt to take a pin to open console.
 
 ![](attachments/agile_6.png)
 
-However, we don't have any clue of the PIN for now.\
+However, we don't have any clue of the PIN for now.
 Let's collect system information first.
 
 ```shell

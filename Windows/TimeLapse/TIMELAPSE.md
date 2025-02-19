@@ -425,7 +425,7 @@ PRIVILEGES INFORMATION
 
 Privilege Name                Description                    State
 ============================= ============================== =======
-SeMachineAccountPrivilege     Add workstations to domain     Enabled
+*SeMachineAccountPrivilege*     Add workstations to domain     Enabled
 SeChangeNotifyPrivilege       Bypass traverse checking       Enabled
 SeIncreaseWorkingSetPrivilege Increase a process working set Enabled
 ```

@@ -183,7 +183,7 @@ Let's try `ldapsearch` if there's any user finding.
 
 ```bash
 ┌──(kali㉿kali)-[~/htb]
-└─$ ldapsearch -H ldap://10.10.10.161 -x -b "DC=HTB,DC=LOCAL" -s sub "(&(objectclass=user))"  | grep sAMAccountName: | cut -f2 -d" "
+└─$ *ldapsearch* -H ldap://10.10.10.161 -x -b "DC=HTB,DC=LOCAL" -s sub "(&(objectclass=user))"  | grep sAMAccountName: | cut -f2 -d" "
 Guest
 DefaultAccount
 FOREST$
