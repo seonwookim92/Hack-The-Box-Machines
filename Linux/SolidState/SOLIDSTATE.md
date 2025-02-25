@@ -397,7 +397,7 @@ The original restricted shell only has 3 commands available.
 
 
 
-# Shell as `root`?
+# Shell as `root`
 
 ### Enumeration
 
