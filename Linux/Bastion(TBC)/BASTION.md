@@ -2,7 +2,7 @@
 tags: 
 group: Windows
 ---
-13![](https://labs.hackthebox.com/storage/avatars/5ca8f0c721a9eca6f1aeb9ff4b4bac60.png)
+![](https://labs.hackthebox.com/storage/avatars/5ca8f0c721a9eca6f1aeb9ff4b4bac60.png)
 
 - Machine : https://app.hackthebox.com/machines/Bastion
 - Reference : https://0xdf.gitlab.io/2019/09/07/htb-bastion.html
