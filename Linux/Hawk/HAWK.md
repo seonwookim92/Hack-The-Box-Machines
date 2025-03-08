@@ -516,7 +516,7 @@ I got a `daniel`'s shell!
 
 I ran `linpeas` for automating enumeration.
 
-```ruby
+```bash
 daniel@hawk:~$ ./linpeas_linux_amd64
 
 ╔══════════╣ Sudo version
@@ -557,6 +557,7 @@ It seems like "H2 Database" we found on port 5435, 8082, 9092 that we haven't vi
 Let's compare how the connection is different when I'm accessing from remote or from local.
 
 Accessing from remote(kali):
+
 ```bash
 ┌──(kali㉿kali)-[~/htb]
 └─$ curl http://10.10.10.102:8082
@@ -579,6 +580,7 @@ Initial Developer: H2 Group
 ```
 
 Accessing from local(target):
+
 ```bash
 daniel@hawk:~$ curl http://127.0.0.1:8082
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
