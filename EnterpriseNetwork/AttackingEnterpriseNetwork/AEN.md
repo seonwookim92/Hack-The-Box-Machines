@@ -2239,7 +2239,7 @@ Let's mount the share and see what's in it.
 ```
 root@dmz01:/tmp# mkdir DEV01
 
-root@dmz01:/tmp# mount -t nfs 172.16.8.20:/DEV01 /tmp/DEV01
+root@dmz01:/tmp# >
 
 root@dmz01:/tmp# cd DEV01/
 

