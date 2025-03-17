@@ -1,19 +1,46 @@
 ---
-tags: 
+tags:
+  - tomcat
 group: Windows
 ---
 ![](https://labs.hackthebox.com/storage/avatars/59f03a24178dbb2bdc94968c201e21f8.png)
 
 - Machine : https://app.hackthebox.com/machines/Jerry
 - Reference : https://0xdf.gitlab.io/2018/11/17/htb-jerry.html
-- Solved : 2025.3.5. (Wed) (Takes 0days)
+- Solved : 2025.3.5. (Wed) (Takes 1day)
 
 ## Summary
 ---
 
+1. **Initial Enumeration**
+    - **Open Port**: HTTP (8080)
+    - **Service Identified**:
+        - Apache Tomcat 7.0.88 (Apache-Coyote/1.1)
+        - Title: Apache Tomcat/7.0.88
+        
+2. **Web Enumeration**
+    - **Directory Bruteforce** using `gobuster`:
+        - `/docs/`, `/examples/`, `/manager/` discovered.
+    - Accessing `/manager/html` revealed a login page.
+    
+3. **Web Exploitation**
+    - **Default Credentials**:
+        - Successfully logged in using `tomcat:s3cret` (from known default credentials list).
+	- **Reverse Shell Deployment**:
+		- Created WAR payload using `msfvenom`
+		- Uploaded and deployed the WAR file via Tomcat Manager interface.
+		- Triggered the shell and caught a reverse connection.
+
+4. **Privilege Escalation**
+	- **Result**: Obtained `NT AUTHORITY\SYSTEM` shell directly upon reverse shell connection.
 
 ### Key Techniques:
 
+- **Service Fingerprinting**: Identified Apache Tomcat version via Nmap.
+- **Directory Enumeration**: Discovered sensitive admin panel `/manager/html`.
+- **Default Credential Abuse**: Used public credential `tomcat:s3cret`.
+- **WAR File Exploitation**: Deployed a WAR reverse shell to gain remote access.
+- **Direct Privilege Gain**: Immediate `SYSTEM` level access post-exploitation.
 
 ---
 
@@ -103,34 +130,3 @@ nt authority\system
 ```
 
 I got `SYSTEM`'s shell.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Shell as `user`
-
-### Whatever
-
-
-
-
-# Shell as `user2`
-
-### Whatever
-
-
-
-# Shell as `admin`
-
-### Whatever
