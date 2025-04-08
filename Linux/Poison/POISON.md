@@ -151,7 +151,6 @@ $ id
 uid=80(www) gid=80(www) groups=80(www)
 $ whoami
 www
-
 ```
 
 Then listener spawns a shell.

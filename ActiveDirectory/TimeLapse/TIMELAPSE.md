@@ -3,7 +3,7 @@ tags:
   - LAPS
   - PFX
   - powershell_history
-group: Windows
+group: ActiveDirectory
 ---
 ![](https://labs.hackthebox.com/storage/avatars/bae443f73a706fc8eebc6fb740128295.png)
 

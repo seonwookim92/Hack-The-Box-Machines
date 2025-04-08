@@ -297,7 +297,7 @@ nadine@SERVMON C:\Users\Nadine\Desktop>dir
 
 
 
-# Shell as `???`
+# Shell as `SYSTEM`
 
 ### Enumeration
 
